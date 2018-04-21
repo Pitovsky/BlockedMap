@@ -17,6 +17,7 @@ def draw_map():
 def make_info():
     data = request.form
     orgs = []
+    orgs.append(Org('Валежник'))
     ts_low = None
     ts_high = None
     for key in data:
@@ -25,9 +26,11 @@ def make_info():
             ts_low = datetime.strptime(tss[0], "%B %d, %Y")
             ts_high = datetime.strptime(tss[1], "%B %d, %Y")
         else:
-            orgs.append(key)
-    ips = select_ip(orgs, ts_low, ts_high)
-    return ips
+            orgs.append(getattr(Org, key))
+    gps = select_ip(orgs, ts_low, ts_high)
+    for gp in gps:
+        print(gp)
+    return ""
 
 if __name__ == '__main__':
     app.run()

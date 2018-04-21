@@ -123,7 +123,7 @@ def parse_blocked(session, xml_path):
     session.commit()
 
 def generate_cwd(session):
-    CWD_COUNT = 1000
+    CWD_COUNT = 255
     CWD_SIZE_MIN = 2
     CWD_SIZE_MAX = 10
     for i in range(CWD_COUNT):
@@ -176,6 +176,6 @@ if __name__ == '__main__':
     Base.metadata.create_all(engine)
 
     session = Session()
-    parse_blocked(session, 'data/dump2.xml')  
+    # parse_blocked(session, 'data/dump2.xml')  
     generate_cwd(session)
     load_geo(session)  
