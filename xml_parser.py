@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import time
+import random
 from bs4 import BeautifulSoup as Soup
 import os, logging
 import json
@@ -11,7 +12,10 @@ from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 from lxml import etree
+from ipaddress import ip_network
 import requests
+
+from ip_selector import Org, get_bin_prefix, get_bin_ip
 
 logger = logging.getLogger(__name__)
 local_name = 'sqlite:///roskomsvoboda.db'
@@ -37,6 +41,7 @@ class BlockedIpData(Base):
     # domain = Column('domain', String)
     ip = Column('ip', String)
     ip_subnet = Column('ip_subnet', String)
+    ip_bin = Column('ip_bin', String)
 
     def __init__(self, data):
         # self.id = count
@@ -52,29 +57,40 @@ class BlockedIpData(Base):
         # self.domain = data.get('domain')
         self.ip = data.get('ip')
         self.ip_subnet = data.get('ip_subnet')
+        self.ip_bin = get_bin_ip(self.ip) if self.ip else get_bin_prefix(ip_network(self.ip_subnet))
 
     def __repr__(self):
         return "<BlockedIpData({0}, {1})>".format(self.content_id, self.ip)
 
 
-class IpGeoData(Base):
-    __tablename__ = 'ip_geo'
+class BlockGeoData(Base):
+    __tablename__ = 'block_geo'
     __table_args__ = {'sqlite_autoincrement': True}
 
     id = Column('id', Integer, primary_key=True)
     block_id = Column('block_id', Integer, ForeignKey('blocked_ip.id'))
     longitude = Column('longitude', Float)
     latitude = Column('latitude', Float)
-    count = Column('count', Integer)
 
-    def __init__(self, block_id, lon, lat, count):
+    def __init__(self, block_id, lon, lat):
         self.block_id = block_id
         self.longitude = lon
         self.latitude = lat
-        self.count = count
 
     def __repr__(self):
         return "<IpGeoData({0}, {1})>".format(self.id, self.block_id)
+
+class GeoPrefix(Base):
+    __tablename__ = 'geo_prefix'
+    __table_args__ = {'sqlite_autoincrement': True}
+    
+    id = Column('id', Integer, primary_key=True)
+    geo_id = Column('geo_id', Integer, ForeignKey('block_geo.id'))
+    prefix = Column('prefix', String)
+    
+    def __init__(self, geo_id, prefix):
+        self.geo_id = geo_id
+        self.prefix = prefix
 
 
 def parse_blocked(session, xml_path):
@@ -106,22 +122,58 @@ def parse_blocked(session, xml_path):
             session.add(BlockedIpData(data))
     session.commit()
 
+def generate_cwd(session):
+    CWD_COUNT = 100
+    CWD_SIZE_MIN = 1
+    CWD_SIZE_MAX = 10
+    for i in range(CWD_COUNT):
+        data = {}
+        data['content_id'] = 'cwd' + str(i)
+        data['include_time'] = '2018-04-18T08:00:00'
+        data['entry_type'] = 7
+        data['block_type'] = 'domain'
+        
+        data['decision_date'] = '2018-04-18'
+        data['decision_number'] = '77-ФЗ'
+        data['org'] = Org.CWD.value
+        
+        data['ip_subnet'] = '127.' + str(i) + '.0.0/' + str(32 - random.randint(CWD_SIZE_MIN, CWD_SIZE_MAX))
+        session.add(BlockedIpData(data))
+    session.commit()
+        
+
 def load_geo(session):
-    ips = session.query(BlockedIpData.id, BlockedIpData.ip, BlockedIpData.ip_subnet).distinct().limit(10).all()
+    ips = session.query(BlockedIpData.id, BlockedIpData.ip, BlockedIpData.ip_subnet).distinct(BlockedIpData.ip).filter(BlockedIpData.org==Org.CWD.value).limit(10).all()
     session.rollback()
     for block_id, ip, ip_subnet in ips:
         req = ip if ip else ip_subnet
-        time.sleep(0.15)
-        response = requests.get('https://stat.ripe.net/data/geoloc/data.json?resource=' + req).json()
+        response = {}
+        if req.startswith('127'):
+            loc = {}
+            loc['longitude'] = random.uniform(52.297, 63.996)
+            loc['latitude'] = random.uniform(29.307, 135.654)
+            loc['covered_percentage'] = 100
+            loc['prefixes'] = [req]
+            response = {'data':{'locations':[loc]}}
+        else:
+            time.sleep(0.15) #API limitations
+            response = requests.get('https://stat.ripe.net/data/geoloc/data.json?resource=' + req).json()
         for loc in response['data']['locations']:
-            count = 1 if ip else 1 #TODO: ip.count * loc['covered_percentage']
-            session.add(IpGeoData(block_id, loc['longitude'], loc['latitude'], count))
+            count = 1 if ip else int(ip_network(ip_subnet).num_addresses * 0.01 * loc['covered_percentage'])
+            block_geo = BlockGeoData(block_id, loc['longitude'], loc['latitude'])
+            session.add(block_geo)
+            session.flush()
+            for prefix in loc['prefixes']:
+                prefix_bin = get_bin_prefix(ip_network(prefix))
+                session.add(GeoPrefix(block_geo.id, prefix_bin))             
         session.commit()
-        
+
 
 if __name__ == '__main__':
     Base.metadata.create_all(engine)
 
     session = Session()
     #parse_blocked(session, 'data/dump2.xml')  
+    generate_cwd(session)
     load_geo(session)
+    session.commit()    
