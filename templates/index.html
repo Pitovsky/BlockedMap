@@ -16,24 +16,66 @@
     </head>
     <body>
         <div class="row" style="margin-top: 60px">
-          <div class="col-md-9" style="text-align: center">
+          <div class="col-md-9">
               <div id="map-container" class="map"></div>
+              <form action="/timelapse" method="post">
+                <div class="row">
+                  <div class="col-md-10">
+                      <div class="slidecontainer">
+                        <input type="range" min="1353756857" max="1524232055" value="1353756857" step="1" class="slider" id="timelapse1">
+                        <input type="range" min="1353756857" max="1524232055" value="1524232055" step="1" class="slider" id="timelapse2">
+                      </div>
+                  </div>
+                  <div class="col-md-2">
+                      <input type="submit" style="margin-top: 5px" class="btn btn-info" id="submit_timelapse" value="Фильтровать по времени">
+                  </div>
+                </div>
+              </form>
           </div>
 
           <div class="col-md-2">
             <div class="card" style="width: 18rem;">
               <div class="card-body">
                <form action="/filter" method="post">
-                  <div class="custom-control custom-checkbox">
-                      <input type="checkbox" class="custom-control-input" id="FSKN">
-                      <label class="custom-control-label" for="FSKN">ФСКН</label>
-                  </div>
-                  <div class="custom-control custom-checkbox">
-                      <input type="checkbox" class="custom-control-input" id="Court">
-                      <label class="custom-control-label" for="Court">Суд</label>
-                  </div>
-                  <br>
-                  <input type="submit" class="btn btn-info" value="Фильтровать">
+                  <fieldset class="form-group">
+                      <div class="custom-control custom-checkbox">
+                          <input type="checkbox" class="custom-control-input" id="FNS">
+                          <label class="custom-control-label" for="FNS">ФНС</label>
+                      </div>
+                      <div class="custom-control custom-checkbox">
+                          <input type="checkbox" class="custom-control-input" id="COURT">
+                          <label class="custom-control-label" for="COURT">Суд</label><br>
+                      </div>
+                      <div class="custom-control custom-checkbox">
+                          <input type="checkbox" class="custom-control-input" id="GP">
+                          <label class="custom-control-label" for="GP">Генпрокуратура</label>
+                      </div>
+                      <div class="custom-control custom-checkbox">
+                          <input type="checkbox" class="custom-control-input" id="RKN">
+                          <label class="custom-control-label" for="RKN">Роскомнадзор</label>
+                      </div>
+                      <div class="custom-control custom-checkbox">
+                          <input type="checkbox" class="custom-control-input" id="MVD">
+                          <label class="custom-control-label" for="MVD">МВД</label>
+                      </div>
+                      <div class="custom-control custom-checkbox">
+                          <input type="checkbox" class="custom-control-input" id="FSKN">
+                          <label class="custom-control-label" for="FSKN">ФСКН</label>
+                      </div>
+                      <div class="custom-control custom-checkbox">
+                          <input type="checkbox" class="custom-control-input" id="MGCOURT">
+                          <label class="custom-control-label" for="MGCOURT">Мосгорсуд</label>
+                      </div>
+                      <div class="custom-control custom-checkbox">
+                          <input type="checkbox" class="custom-control-input" id="RPN">
+                          <label class="custom-control-label" for="RPN">Роспотребнадзор</label>
+                      </div>
+                      <div class="custom-control custom-checkbox">
+                          <input type="checkbox" class="custom-control-input" id="MKS">
+                          <label class="custom-control-label" for="MKS">Минкомсвязь</label>
+                      </div>
+                  </fieldset>
+                  <input type="submit" class="btn btn-info" id="submit_orgs" value="Фильтровать по ведомствам">
                 </form>
               </div>
             </div>
