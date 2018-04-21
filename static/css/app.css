@@ -1,0 +1,11 @@
+body {
+  margin: 0;
+  text-align: center;
+}
+
+.map {
+  margin-left: 5vw;
+  width: 70vw;
+  height: 70vh;
+  position: relative;
+}

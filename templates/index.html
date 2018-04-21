@@ -1,0 +1,46 @@
+<!doctype html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Карта РосКомПозора</title>
+        <meta name="viewport" content="initial-scale=1.0, width=device-width">
+
+        <link rel="stylesheet" type="text/css" href="https://js.api.here.com/v3/3.0/mapsjs-ui.css" />
+        <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-core.js"></script>
+        <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-service.js"></script>
+        <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-ui.js"></script>
+        <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-mapevents.js"></script>
+
+        <link rel="stylesheet" href={{ url_for("static", filename="css/app.css") }}>
+        <link rel="stylesheet" href={{ url_for("static", filename="css/bootstrap.min.css") }}>
+    </head>
+    <body>
+        <div class="row" style="margin-top: 60px">
+          <div class="col-md-9" style="text-align: center">
+              <div id="map-container" class="map"></div>
+          </div>
+
+          <div class="col-md-2">
+            <div class="card" style="width: 18rem;">
+              <div class="card-body">
+               <form action="/filter" method="post">
+                  <div class="custom-control custom-checkbox">
+                      <input type="checkbox" class="custom-control-input" id="FSKN">
+                      <label class="custom-control-label" for="FSKN">ФСКН</label>
+                  </div>
+                  <div class="custom-control custom-checkbox">
+                      <input type="checkbox" class="custom-control-input" id="Court">
+                      <label class="custom-control-label" for="Court">Суд</label>
+                  </div>
+                  <br>
+                  <input type="submit" class="btn btn-info" value="Фильтровать">
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <script src={{ url_for("static", filename="js/app.js") }}></script>
+        <script src={{ url_for("static", filename="js/bootstrap.min.js") }}></script>
+    </body>
+</html>
