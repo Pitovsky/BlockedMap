@@ -12,7 +12,7 @@ from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 from lxml import etree
-from ipaddress import ip_network
+from ipaddress import ip_network, ip_address
 import requests
 
 from ip_selector import Org, get_bin_prefix, get_bin_ip
@@ -57,7 +57,7 @@ class BlockedIpData(Base):
         # self.domain = data.get('domain')
         self.ip = data.get('ip')
         self.ip_subnet = data.get('ip_subnet')
-        self.ip_bin = get_bin_ip(self.ip) if self.ip else get_bin_prefix(ip_network(self.ip_subnet))
+        self.ip_bin = get_bin_ip(ip_address(self.ip)) if self.ip else get_bin_prefix(ip_network(self.ip_subnet))
 
     def __repr__(self):
         return "<BlockedIpData({0}, {1})>".format(self.content_id, self.ip)
@@ -123,8 +123,8 @@ def parse_blocked(session, xml_path):
     session.commit()
 
 def generate_cwd(session):
-    CWD_COUNT = 100
-    CWD_SIZE_MIN = 1
+    CWD_COUNT = 1000
+    CWD_SIZE_MIN = 2
     CWD_SIZE_MAX = 10
     for i in range(CWD_COUNT):
         data = {}
@@ -137,7 +137,10 @@ def generate_cwd(session):
         data['decision_number'] = '77-ФЗ'
         data['org'] = Org.CWD.value
         
-        data['ip_subnet'] = '127.' + str(i) + '.0.0/' + str(32 - random.randint(CWD_SIZE_MIN, CWD_SIZE_MAX))
+        if random.random() > 0.2:
+            data['ip_subnet'] = '127.' + str(i) + '.0.0/' + str(32 - random.randint(CWD_SIZE_MIN, CWD_SIZE_MAX))
+        else:
+            data['ip'] = '127.15.' + str(i) + '.1'
         session.add(BlockedIpData(data))
     session.commit()
         
@@ -173,7 +176,6 @@ if __name__ == '__main__':
     Base.metadata.create_all(engine)
 
     session = Session()
-    #parse_blocked(session, 'data/dump2.xml')  
+    parse_blocked(session, 'data/dump2.xml')  
     generate_cwd(session)
-    load_geo(session)
-    session.commit()    
+    load_geo(session)  

@@ -61,15 +61,14 @@ def filter_ip(ip_df, subnet_df):
 
 def select_ip(orgs=[], ts_low=datetime.min, ts_high=datetime.max):
 	#TODO: parameterize with ?
-	query = 'select distinct latitude, longitude, sum(2 << (31 - length(prefix))) from blocked_ip'
-	query += ' join geo_prefix on (prefix like ip_bin || \'%\')'
-	query += ' join block_geo on block_geo.id = geo_id'
+	query = 'select distinct latitude, longitude, coalesce(sum(2 << (31 - length(prefix))), 1) from blocked_ip'
+	query += ' left outer join geo_prefix on (prefix like ip_bin || \'%\')'
+	query += ' join block_geo on (block_geo.id = geo_id) or (geo_id isnull and block_geo.block_id = blocked_ip.id)'
 	query += ' where include_time > \'{0}\' and include_time < \'{1}\''.format(ts_low, ts_high)
 	if len(orgs) > 0:
 		where_query = ' and org in (\'' + str('\', \''.join([org.value for org in orgs])) + '\')'
 		query += where_query
 	query += ' group by geo_id'
-	#TODO: underscore
 	return engine.execute(query)
 
 
@@ -90,5 +89,6 @@ if __name__ == '__main__':
 	smart_print([Org.MVD])
 	smart_print([Org.MKS])
 	
-	for row in select_ip():
+	res = select_ip()
+	for row in res:
 		print(row)
