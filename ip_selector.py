@@ -19,15 +19,17 @@ class Org(Enum):
 
 def select_ip(orgs=[], ts_low=datetime.min, ts_high=datetime.max):
 	query = 'select ip from blocked_ip'
+	query += ' where include_time > \'{0}\' and include_time < \'{1}\''.format(ts_low, ts_high)
 	if len(orgs) > 0:
-		where_query = ' where org in (\'' + str('\', \''.join([org.value for org in orgs])) + '\')'
+		where_query = ' and org in (\'' + str('\', \''.join([org.value for org in orgs])) + '\')'
 		query += where_query
+	print(query)
 
 	return pd.read_sql_query(query, engine)
 
 
 if __name__ == '__main__':
-	print(select_ip().shape)
+	print(select_ip([]).shape)
 	print(select_ip([Org.RPN]).shape)
 	print(select_ip([Org.MGCOURT]).shape)
 	print(select_ip([Org.MKS]).shape)
