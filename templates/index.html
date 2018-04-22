@@ -130,7 +130,7 @@
           {% for point in points %}
           map.addObject(
             new H.map.Circle(
-              { lat: {{point[1]}}, lng: {{point[0]}} }, 32000*Math.log({{point[2]}})*Math.cos((180 / Math.PI)*{{point[1]}}),
+              { lat: {{point[0]}}, lng: {{point[1]}} }, 32000*Math.log({{point[2]}})*Math.cos((180 / Math.PI)*{{point[0]}}),
               {style: {fillColor: 'rgba(200, 10, 0, 0.5', strokeColor: 'black'}})
             )
           {% endfor %}
