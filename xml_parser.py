@@ -188,10 +188,10 @@ def load_geodata(session):
     subnets_data = {row[0]: row[2] for row in data if row[2]}
     load_some_geodata(session, subnets_data, True)
 
-    ips_data = {row[0]: row[1] for row in data if row[1]}
-    top_level_ips = filter_ip(ips_data, subnets_data)
-    sample = {_id: top_level_ips[_id] for _id in random.sample(top_level_ips.keys(), min(NUM_INDIVIDUAL_IPS, len(top_level_ips)))}
-    load_some_geodata(session, sample)
+    # ips_data = {row[0]: row[1] for row in data if row[1]}
+    # top_level_ips = filter_ip(ips_data, subnets_data)
+    # sample = {_id: top_level_ips[_id] for _id in random.sample(top_level_ips.keys(), min(NUM_INDIVIDUAL_IPS, len(top_level_ips)))}
+    # load_some_geodata(session, sample)
                       
     session.commit()
 
@@ -201,6 +201,6 @@ if __name__ == '__main__':
 
     session = Session()
     parse_blocked(session, 'data/dump2.xml')  
-    # generate_cwd(session)
+    generate_cwd(session)
     load_geodata(session)
 
