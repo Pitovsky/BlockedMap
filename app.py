@@ -18,7 +18,6 @@ def draw_map():
 def make_info():
     data = request.form
     orgs = []
-    orgs.append(Org('Валежник'))
     ts_low = None
     ts_high = None
     for key in data:
@@ -29,7 +28,8 @@ def make_info():
         else:
             orgs.append(getattr(Org, key))
     gps = select_ip(orgs, ts_low, ts_high)
-    return render_template('index.html', points=gps)
+    valezhnik = select_ip([Org('Валежник')], ts_low, ts_high)
+    return render_template('index.html', points=gps, valezhnik=valezhnik)
     # return redirect("")
 
 if __name__ == '__main__':

@@ -135,6 +135,14 @@
             )
           {% endfor %}
 
+          {% for point in valezhnik %}
+          map.addObject(
+            new H.map.Circle(
+              { lat: {{point[0]}}, lng: {{point[1]}} }, 32000*Math.log({{point[2]}})*Math.cos((180 / Math.PI)*{{point[0]}}),
+              {style: {fillColor: 'rgba(10, 200, 0, 0.5', strokeColor: 'black'}})
+            )
+          {% endfor %}
+
           window.addEventListener('resize', function () {
             map.getViewPort().resize();
           });
