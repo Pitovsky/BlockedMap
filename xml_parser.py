@@ -186,6 +186,6 @@ if __name__ == '__main__':
     Base.metadata.create_all(engine)
 
     session = Session()
-    parse_blocked(session, 'data/dump2.xml')  
+    # parse_blocked(session, 'data/dump2.xml')  
     generate_cwd(session)
     load_geo(session)  
