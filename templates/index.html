@@ -39,7 +39,8 @@
           <div class="col-md-2">
             <div class="card" style="width: 25rem;">
               <div class="card-body">
-               <form action="/filter" method="post">
+               <iframe width="0" height="0" border="0" name="dummyframe" id="dummyframe"></iframe>
+               <form action="/filter" method="post" target="dummyframe" id="submitform">
                   <fieldset class="form-group">
                       <div class="custom-control custom-checkbox">
                           <input type="checkbox" class="custom-control-input" id="FNS" name="FNS">
@@ -128,9 +129,9 @@
           //   lineJoin: 'bevel'
           // };
           
-          circles = []
+          var circles = []
 
-          {% for point in points %}
+          /*{% for point in points %}
             circles.push({size: {{point[2]}}, geom: new H.map.Circle(
               { lat: {{point[0]}}, lng: {{point[1]}} }, 32000*Math.log({{point[2]}})*Math.cos((180 / Math.PI)*{{point[0]}}) + 500,
               {style: {fillColor: 'rgba(200, 10, 0, 0.5', strokeColor: 'black', lineWidth: 0.3}})
@@ -146,7 +147,7 @@
           
           for (var i = 0; i < circles.length; ++i) {
             map.addObject(circles[i].geom);
-          }
+          }*/
           
           map.setBaseLayer(defaultLayers.terrain.map);
           var behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
@@ -163,6 +164,29 @@
 
           window.addEventListener('resize', function () {
             map.getViewPort().resize();
+          });
+          
+          $('#submitform').submit(function(e){
+            e.preventDefault();
+            $.ajax({
+              url:'/filter',
+              type:'post',
+              data:$('#submitform').serialize(),
+              success:function(points){
+                for (var i = 0; i < circles.length; ++i) {
+                  map.removeObject(circles[i].geom);
+                }
+                circles = [];
+                for (var i = 0; i < points.length; ++i) {
+                  circles.push({size: points[i].count, geom: new H.map.Circle(
+                    { lat: points[i].lat, lng: points[i].lng },
+                    (256000*Math.log(points[i].count)*Math.cos((180 / Math.PI)*points[i].lat) + 500) / (2 << map.getZoom()),
+                    {style: {fillColor: points[i].color, strokeColor: 'black', lineWidth: 0.3}})
+                  });
+                  map.addObject(circles[i].geom);
+                }
+              }
+            });
           });
         </script>
 
