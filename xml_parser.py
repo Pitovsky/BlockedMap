@@ -11,6 +11,7 @@ from sqlalchemy import create_engine, Table, Column, Integer, Float, String, Boo
 from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
+from sqlalchemy.schema import Index
 from lxml import etree
 from ipaddress import ip_network, ip_address
 import requests
@@ -42,6 +43,8 @@ class BlockedIpData(Base):
     ip = Column('ip', String)
     ip_subnet = Column('ip_subnet', String)
     ip_bin = Column('ip_bin', String)
+    
+    ip_bin_index = Index("ip_bin_index", ip_bin)
 
     def __init__(self, data):
         # self.id = count
@@ -87,6 +90,7 @@ class GeoPrefix(Base):
     id = Column('id', Integer, primary_key=True)
     geo_id = Column('geo_id', Integer, ForeignKey('block_geo.id'))
     prefix = Column('prefix', String)
+    prefix_index = Index("prefix_index", prefix)
     
     def __init__(self, geo_id, prefix):
         self.geo_id = geo_id
@@ -123,7 +127,7 @@ def parse_blocked(session, xml_path):
     session.commit()
 
 def generate_cwd(session):
-    CWD_COUNT = 1000
+    CWD_COUNT = 255
     CWD_SIZE_MIN = 2
     CWD_SIZE_MAX = 10
     for i in range(CWD_COUNT):
@@ -146,15 +150,15 @@ def generate_cwd(session):
         
 
 def load_geo(session):
-    ips = session.query(BlockedIpData.id, BlockedIpData.ip, BlockedIpData.ip_subnet).distinct(BlockedIpData.ip).filter(BlockedIpData.org==Org.CWD.value).limit(10).all()
+    ips = session.query(BlockedIpData.id, BlockedIpData.ip, BlockedIpData.ip_subnet).distinct(BlockedIpData.ip).all()
     session.rollback()
     for block_id, ip, ip_subnet in ips:
         req = ip if ip else ip_subnet
         response = {}
         if req.startswith('127'):
             loc = {}
-            loc['longitude'] = random.uniform(52.297, 63.996)
-            loc['latitude'] = random.uniform(29.307, 135.654)
+            loc['latitude'] = random.uniform(52.297, 63.996)
+            loc['longitude'] = random.uniform(29.307, 135.654)
             loc['covered_percentage'] = 100
             loc['prefixes'] = [req]
             response = {'data':{'locations':[loc]}}
@@ -162,13 +166,19 @@ def load_geo(session):
             time.sleep(0.15) #API limitations
             response = requests.get('https://stat.ripe.net/data/geoloc/data.json?resource=' + req).json()
         for loc in response['data']['locations']:
-            count = 1 if ip else int(ip_network(ip_subnet).num_addresses * 0.01 * loc['covered_percentage'])
             block_geo = BlockGeoData(block_id, loc['longitude'], loc['latitude'])
             session.add(block_geo)
             session.flush()
+            prefix_bins = []
             for prefix in loc['prefixes']:
-                prefix_bin = get_bin_prefix(ip_network(prefix))
-                session.add(GeoPrefix(block_geo.id, prefix_bin))             
+                prefix_bins.append(get_bin_prefix(ip_network(prefix)))
+            if ip_subnet:
+                prefix_bin = get_bin_prefix(ip_network(req))
+                if not prefix_bin in prefix_bins:
+                    prefix_bins.append(prefix_bin)
+            for prefix in prefix_bins:
+                session.add(GeoPrefix(block_geo.id, prefix))
+                      
         session.commit()
 
 
