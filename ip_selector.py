@@ -19,20 +19,31 @@ class Org(Enum):
 	FNS = 'ФНС'
 	MVD = 'МВД'
 	MKS = 'Минкомсвязь'
+	CWD = 'Валежник'
 
 
 def get_bin_ip(address):
-	return str(bin(int(address.packed.hex(), 16))).rstrip('0')
+	return str(bin(int(address.packed.hex(), 16)))
+
+def get_bin_prefix(network):
+	return str(bin(int(network.network_address.packed.hex(), 16)))[:network.prefixlen]
 
 
-def filter_ip(ip_df, subnet_df):
-	top_level_id = []
+def where_clause(orgs, ts_low, ts_high):
+	#TODO: parameterize with ?
+	query = ' where include_time > \'{0}\' and include_time < \'{1}\''.format(ts_low, ts_high)
+	if len(orgs) > 0:
+		query += ' and org in (\'' + str('\', \''.join([org.value for org in orgs])) + '\')'
+	return query + ' group by latitude, longitude'
+		
+
+def filter_ip(ip_dict, subnet_dict):
+	top_level_ip = {}
 	networks_binary = []
 	# get all networks in binary format
-	for index, row in subnet_df.iterrows():
-		_id, subnet = row
+	for _id, subnet in subnet_dict.items():
 		network = ipaddress.ip_network(subnet, strict=True)
-		networks_binary.append((get_bin_ip(ipaddress.ip_address(network.network_address)), _id, network))
+		networks_binary.append((get_bin_ip(ipaddress.ip_address(network.network_address)).rstrip('0'), _id, network))
 	networks_binary.sort(key=lambda x:x[0])
 	# get top networks (sorted lexicographically)
 	networks_top = []
@@ -41,35 +52,35 @@ def filter_ip(ip_df, subnet_df):
 		if current_top_addr is None or not addr.startswith(current_top_addr):
 			current_top_addr, current_top_network = addr, network
 			networks_top.append((current_top_addr, current_top_network))
-			top_level_id.append(_id)
+			# top_level_id.append(_id)
 	# get top-level individual ips
-	for index, row in ip_df.iterrows():
-		_id, ip = row
-		bin_addr = get_bin_ip(ipaddress.ip_address(ip))
+	for _id, ip in ip_dict.items():
+		bin_addr = get_bin_ip(ipaddress.ip_address(ip)).rstrip('0')
 		found = False
 		for addr, network in networks_top:
 			if bin_addr.startswith(addr):
 				found = True
 		if not found:
-			top_level_id.append(_id)
-	return top_level_id
-		
+			top_level_ip[_id] = ip
+	return top_level_ip
+
 
 def select_ip(orgs=[], ts_low=datetime.min, ts_high=datetime.max):
-	query = 'select id, ip, ip_subnet from blocked_ip'
-	query += ' where include_time > \'{0}\' and include_time < \'{1}\''.format(ts_low, ts_high)
-	if len(orgs) > 0:
-		where_query = ' and org in (\'' + str('\', \''.join([org.value for org in orgs])) + '\')'
-		query += where_query
-	df = pd.read_sql_query(query, engine)
-	# ip_subnet == None <==> ip != None
-	top_level_id = filter_ip(df[df['ip_subnet'].isnull()][['id', 'ip']], 
-		df[df['ip'].isnull()][['id', 'ip_subnet']])
-	return top_level_id
+	query = 'select latitude, longitude, sum(2 << (31 - length(prefix))) from blocked_ip'
+	query += ' join geo_prefix on (prefix between (ip_bin || \'0\') and (ip_bin || \'1\')) or (prefix = ip_bin)'
+	query += ' join block_geo on (block_geo.id = geo_id)'
+	query += where_clause(orgs, ts_low, ts_high)
+	query += '  union '
+	query += 'select latitude, longitude, count(*) from blocked_ip'
+	query += ' join block_geo on (block_id = blocked_ip.id) and (ip_subnet is null)'
+	query += where_clause(orgs, ts_low, ts_high)
+	# print(query)
+	return engine.execute(query)
 
 
 def smart_print(orgs):
-	print('{0} : {1}'.format(orgs, len(select_ip(orgs))))
+	pass
+	#print('{0} : {1}'.format(orgs, len(select_ip(orgs))))
 
 
 if __name__ == '__main__':
@@ -83,3 +94,7 @@ if __name__ == '__main__':
 	smart_print([Org.FNS])
 	smart_print([Org.MVD])
 	smart_print([Org.MKS])
+	
+	res = select_ip()
+	for row in res:
+		print(row)

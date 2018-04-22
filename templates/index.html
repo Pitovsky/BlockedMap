@@ -2,13 +2,14 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>Карта РосКомПозора</title>
+        <title>HERE something was blocked!</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width">
 
         <link rel="stylesheet" type="text/css" href="https://js.api.here.com/v3/3.0/mapsjs-ui.css" />
         <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-core.js"></script>
         <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-service.js"></script>
         <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-ui.js"></script>
+        <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-pano.js"></script>
         <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-mapevents.js"></script>
         <script type="text/javascript" src="//cdn.jsdelivr.net/jquery/1/jquery.min.js"></script>
         <script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
@@ -20,26 +21,28 @@
         <link rel="stylesheet" href={{ url_for("static", filename="css/bootstrap.min.css") }}>
     </head>
     <body>
-        <div class="row" style="margin-top: 60px">
+        <div class="row" style="margin-top: 10px; text-align: center;">
+          <div class="col-md-9">
+              <h2 class="container">Карта блокировки датацентров</h2>
+              <h4>Где не стоит разворачивать свой сервис? Что новенького в реестре? Где находятся сервера, которые не любит ФСКН?</h4>
+              <h5 class="container">Радиус круга соотносится с количеством заблокированных IP-адресов на этой локации</h5>
+              <h5 class="container">Воспользуйтесь меню справа для фильтрации по ведомствам и дате внесения в реестр</h5>
+          </div>
+        </div>
+        <div class="row" style="margin-top: 30px">
           <div class="col-md-9">
               <div id="map-container" class="map"></div>
-              <form action="/filter_time" method="post">
-                <div class="row">
-                  <div class="col-md-11">
-                      <div class="slidecontainer">
-                        <input type="range" min="1353756857" max="1524232055" value="1353756857" step="1" class="slider" id="timelapse1">
-                        <input type="range" min="1353756857" max="1524232055" value="1524232055" step="1" class="slider" id="timelapse2">
-                      </div>
-                  </div>
-                </div>
-              </form>
           </div>
 
           <div class="col-md-2">
             <div class="card" style="width: 25rem;">
               <div class="card-body">
-               <form action="/" method="post">
+               <form action="/filter" method="post" target="dummyframe" id="submitform">
                   <fieldset class="form-group">
+                      <div class="custom-control custom-checkbox">
+                      <input type="checkbox" class="custom-control-input" id="select_all">
+                          <label class="custom-control-label" for="select_all"><u>Выбрать все</u></label>
+                      </div>
                       <div class="custom-control custom-checkbox">
                           <input type="checkbox" class="custom-control-input" id="FNS" name="FNS">
                           <label class="custom-control-label" for="FNS">ФНС</label>
@@ -91,12 +94,92 @@
           </div>
         </div>
 
-        <script src={{ url_for("static", filename="js/app.js") }}></script>
+        <script type="text/javascript">
+          var mapContainer = document.getElementById('map-container');
+
+          var platform = new H.service.Platform({
+            app_id: 'o8laThovktF2GpayPtsu',
+            app_code: 'gzc292l_SP7HGieBMAxCtw',
+          });
+
+          var MoscowCoordinates = {
+            lat: 55.7558,
+            lng: 37.6173
+          };
+
+          var mapOptions = {
+            zoom: 2,
+            height: 600,
+            width: 900
+          };
+
+          var defaultLayers = platform.createDefaultLayers();
+
+          var map = new H.Map(
+            mapContainer,
+            defaultLayers.normal.map,
+            mapOptions);
+
+          var circles = []
+
+          map.setBaseLayer(defaultLayers.terrain.map);
+          var behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
+          var ui = H.ui.UI.createDefault(map, defaultLayers);
+          
+          setInterval(function() {
+            for (var i = 0; i < circles.length; ++i) {
+              var lat = circles[i].geom.getCenter().lat;
+              circles[i].geom.setRadius((256000*Math.log(circles[i].size)*Math.cos((180 / Math.PI)*lat) + 500) / (2 << map.getZoom()));
+            }
+          }, 500);
+
+
+          window.addEventListener('resize', function () {
+            map.getViewPort().resize();
+          });
+          
+          $('#submitform').submit(function(e){
+            e.preventDefault();
+            $.ajax({
+              url:'/filter',
+              type:'post',
+              data:$('#submitform').serialize(),
+              success:function(points){
+                for (var i = 0; i < circles.length; ++i) {
+                  map.removeObject(circles[i].geom);
+                }
+                circles = [];
+                for (var i = 0; i < points.length; ++i) {
+                  circles.push({size: points[i].count, geom: new H.map.Circle(
+                    { lat: points[i].lat, lng: points[i].lng },
+                    (256000*Math.log(points[i].count)*Math.cos((180 / Math.PI)*points[i].lat) + 500) / (2 << map.getZoom()),
+                    {style: {fillColor: points[i].color, strokeColor: 'black', lineWidth: 0.3}})
+                  });
+                  map.addObject(circles[i].geom);
+                }
+              }
+            });
+          });
+        </script>
+
         <script src={{ url_for("static", filename="js/bootstrap.min.js") }}></script>
         <script type="text/javascript">
+        $("#select_all").change(function(){ 
+            $(":checkbox").prop('checked', $(this).prop("checked")); //change all ".checkbox" checked status
+        });
+ 
+        $(':checkbox').change(function(){ 
+            if(false == $(this).prop("checked")){ //if this item is unchecked
+                $("#select_all").prop('checked', false); //change "select all" checked status to false
+            }
+            if ($(':checkbox:checked').length == $(':checkbox').length ){
+              $("#select_all").prop('checked', true);
+            }
+        });
+
         $(function() {
 
-            var start = moment().subtract(29, 'days');
+            var start = moment().subtract(10, 'years');
             var end = moment();
 
             function cb(start, end) {
@@ -117,6 +200,11 @@
 
             cb(start, end);
             
+        });
+
+        
+        $(document).ready(function(){
+            $("#submitform").submit();
         });
         </script>
     </body>
