@@ -126,22 +126,34 @@
           //   lineCap: 'circle',
           //   lineJoin: 'bevel'
           // };
+          
+          circles = []
 
           {% for point in points %}
-          map.addObject(
-            new H.map.Circle(
-              { lat: {{point[0]}}, lng: {{point[1]}} }, 32000*Math.log({{point[2]}})*Math.cos((180 / Math.PI)*{{point[0]}}),
-              {style: {fillColor: 'rgba(200, 10, 0, 0.5', strokeColor: 'black'}})
-            )
+            circles.push({size: {{point[2]}}, geom: new H.map.Circle(
+              { lat: {{point[0]}}, lng: {{point[1]}} }, 32000*Math.log({{point[2]}})*Math.cos((180 / Math.PI)*{{point[0]}}) + 500,
+              {style: {fillColor: 'rgba(200, 10, 0, 0.5', strokeColor: 'black', lineWidth: 0.3}})
+            });
           {% endfor %}
 
           {% for point in valezhnik %}
-          map.addObject(
-            new H.map.Circle(
-              { lat: {{point[0]}}, lng: {{point[1]}} }, 32000*Math.log({{point[2]}})*Math.cos((180 / Math.PI)*{{point[0]}}),
-              {style: {fillColor: 'rgba(10, 200, 0, 0.5', strokeColor: 'black'}})
-            )
+            circles.push({size: {{point[2]}}, geom: new H.map.Circle(
+              { lat: {{point[0]}}, lng: {{point[1]}} }, 32000*Math.log({{point[2]}})*Math.cos((180 / Math.PI)*{{point[0]}}) + 500,
+              {style: {fillColor: 'rgba(10, 200, 0, 0.5', strokeColor: 'black', lineWidth: 0.3}})
+            });
           {% endfor %}
+          
+          for (var i = 0; i < circles.length; ++i) {
+            map.addObject(circles[i].geom);
+          }
+          
+          setInterval(function() {
+            for (var i = 0; i < circles.length; ++i) {
+              var lat = circles[i].geom.getCenter().lat;
+              circles[i].geom.setRadius((256000*Math.log(circles[i].size)*Math.cos((180 / Math.PI)*lat) + 500) / (2 << map.getZoom()));
+            }
+          }, 500);
+
 
           window.addEventListener('resize', function () {
             map.getViewPort().resize();
