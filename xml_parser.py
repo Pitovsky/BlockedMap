@@ -15,6 +15,7 @@ from sqlalchemy.schema import Index
 from lxml import etree
 from ipaddress import ip_network, ip_address
 import requests
+from tqdm import tqdm
 
 from ip_selector import Org, get_bin_prefix, get_bin_ip
 
@@ -141,7 +142,7 @@ def generate_cwd(session):
         data['decision_number'] = '77-ФЗ'
         data['org'] = Org.CWD.value
         
-        if random.random() > 0.2:
+        if random.random() > 0.0:
             data['ip_subnet'] = '127.' + str(i) + '.0.0/' + str(32 - random.randint(CWD_SIZE_MIN, CWD_SIZE_MAX))
         else:
             data['ip'] = '127.15.' + str(i) + '.1'
@@ -152,7 +153,7 @@ def generate_cwd(session):
 def load_geo(session):
     ips = session.query(BlockedIpData.id, BlockedIpData.ip, BlockedIpData.ip_subnet).distinct(BlockedIpData.ip).all()
     session.rollback()
-    for block_id, ip, ip_subnet in ips:
+    for block_id, ip, ip_subnet in tqdm(ips):
         req = ip if ip else ip_subnet
         response = {}
         if req.startswith('127'):
@@ -186,6 +187,6 @@ if __name__ == '__main__':
     Base.metadata.create_all(engine)
 
     session = Session()
-    # parse_blocked(session, 'data/dump2.xml')  
+    parse_blocked(session, 'data/dump2.xml')  
     generate_cwd(session)
     load_geo(session)  
