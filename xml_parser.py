@@ -24,6 +24,7 @@ local_name = 'sqlite:///roskomsvoboda.db'
 engine = create_engine(local_name, echo=False)
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
+NUM_INDIVIDUAL_IPS = 0
 
 count = 0
 
@@ -186,7 +187,7 @@ def load_geodata(session):
 
     ips_data = {row[0]: row[1] for row in data if row[1]}
     top_level_ips = filter_ip(ips_data, subnets_data)
-    sample = {_id: top_level_ips[_id] for _id in random.sample(top_level_ips.keys(), 10)}
+    sample = {_id: top_level_ips[_id] for _id in random.sample(top_level_ips.keys(), min(NUM_INDIVIDUAL_IPS, len(top_level_ips)))}
     load_some_geodata(session, sample)
                       
     session.commit()
