@@ -161,7 +161,7 @@ def load_some_geodata(session, addresses, is_subnet=False):
             loc['prefixes'] = [addr]
             response = {'data':{'locations':[loc]}}
         else:
-            time.sleep(0.15) #API limitations
+            time.sleep(0.16) #API limitations
             response = requests.get('https://stat.ripe.net/data/geoloc/data.json?resource=' + addr).json()
         geo_map[block_id] = response['data']['locations']
 
@@ -187,10 +187,10 @@ def load_geodata(session):
     subnets_data = {row[0]: row[2] for row in data if row[2]}
     load_some_geodata(session, subnets_data, True)
 
-    # ips_data = {row[0]: row[1] for row in data if row[1]}
-    # top_level_ips = filter_ip(ips_data, subnets_data)
-    # sample = {_id: top_level_ips[_id] for _id in random.sample(top_level_ips.keys(), 10)}
-    # load_some_geodata(session, sample)
+    ips_data = {row[0]: row[1] for row in data if row[1]}
+    top_level_ips = filter_ip(ips_data, subnets_data)
+    sample = {_id: top_level_ips[_id] for _id in random.sample(top_level_ips.keys(), 10)}
+    load_some_geodata(session, sample)
                       
     session.commit()
 

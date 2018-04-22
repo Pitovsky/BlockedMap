@@ -2,7 +2,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>Карта РосКомПозора</title>
+        <title>HERE something was blocked!</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width">
 
         <link rel="stylesheet" type="text/css" href="https://js.api.here.com/v3/3.0/mapsjs-ui.css" />
@@ -24,22 +24,11 @@
         <div class="row" style="margin-top: 60px">
           <div class="col-md-9">
               <div id="map-container" class="map"></div>
-              <form action="/filter_time" method="post">
-                <div class="row">
-                  <div class="col-md-11">
-                      <div class="slidecontainer">
-                        <input type="range" min="1353756857" max="1524232055" value="1353756857" step="1" class="slider" id="timelapse1">
-                        <input type="range" min="1353756857" max="1524232055" value="1524232055" step="1" class="slider" id="timelapse2">
-                      </div>
-                  </div>
-                </div>
-              </form>
           </div>
 
           <div class="col-md-2">
             <div class="card" style="width: 25rem;">
               <div class="card-body">
-               <iframe width="0" height="0" border="0" name="dummyframe" id="dummyframe"></iframe>
                <form action="/filter" method="post" target="dummyframe" id="submitform">
                   <fieldset class="form-group">
                       <div class="custom-control custom-checkbox">

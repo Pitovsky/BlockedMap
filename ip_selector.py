@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 import ipaddress
 
 
-local_name = 'sqlite:///roskomsvoboda_noval.db'
+local_name = 'sqlite:///roskomsvoboda.db'
 engine = create_engine(local_name, echo=False)
 
 
