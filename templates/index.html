@@ -179,7 +179,7 @@
 
         $(function() {
 
-            var start = moment().subtract(29, 'days');
+            var start = moment().subtract(10, 'years');
             var end = moment();
 
             function cb(start, end) {
@@ -200,6 +200,11 @@
 
             cb(start, end);
             
+        });
+
+        
+        $(document).ready(function(){
+            $("#submitform").submit();
         });
         </script>
     </body>
