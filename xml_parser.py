@@ -17,7 +17,7 @@ from ipaddress import ip_network, ip_address
 import requests
 from tqdm import tqdm
 
-from ip_selector import Org, get_bin_prefix, get_bin_ip
+from ip_selector import Org, get_bin_prefix, get_bin_ip, filter_ip
 
 logger = logging.getLogger(__name__)
 local_name = 'sqlite:///roskomsvoboda.db'
@@ -148,39 +148,51 @@ def generate_cwd(session):
             data['ip'] = '127.15.' + str(i) + '.1'
         session.add(BlockedIpData(data))
     session.commit()
-        
-
-def load_geo(session):
-    ips = session.query(BlockedIpData.id, BlockedIpData.ip, BlockedIpData.ip_subnet).distinct(BlockedIpData.ip).all()
-    session.rollback()
-    for block_id, ip, ip_subnet in tqdm(ips):
-        req = ip if ip else ip_subnet
+    
+def load_some_geodata(session, addresses, is_subnet=False):
+    geo_map = dict()
+    for block_id, addr in tqdm(addresses.items()):
         response = {}
-        if req.startswith('127'):
+        if addr.startswith('127'):
             loc = {}
             loc['latitude'] = random.uniform(52.297, 63.996)
             loc['longitude'] = random.uniform(29.307, 135.654)
             loc['covered_percentage'] = 100
-            loc['prefixes'] = [req]
+            loc['prefixes'] = [addr]
             response = {'data':{'locations':[loc]}}
         else:
             time.sleep(0.15) #API limitations
-            response = requests.get('https://stat.ripe.net/data/geoloc/data.json?resource=' + req).json()
-        for loc in response['data']['locations']:
+            response = requests.get('https://stat.ripe.net/data/geoloc/data.json?resource=' + addr).json()
+        geo_map[block_id] = response['data']['locations']
+
+    for block_id, locations in geo_map.items():
+        for loc in locations:
             block_geo = BlockGeoData(block_id, loc['longitude'], loc['latitude'])
             session.add(block_geo)
             session.flush()
             prefix_bins = []
             for prefix in loc['prefixes']:
                 prefix_bins.append(get_bin_prefix(ip_network(prefix)))
-            if ip_subnet:
-                prefix_bin = get_bin_prefix(ip_network(req))
+            if is_subnet:
+                prefix_bin = get_bin_prefix(ip_network(addresses[block_id]))
                 if not prefix_bin in prefix_bins:
                     prefix_bins.append(prefix_bin)
             for prefix in prefix_bins:
+                print(block_geo.id, prefix)
                 session.add(GeoPrefix(block_geo.id, prefix))
+
+def load_geodata(session):
+    data = session.query(BlockedIpData.id, BlockedIpData.ip, BlockedIpData.ip_subnet).all()
+    session.rollback()
+    subnets_data = {row[0]: row[2] for row in data if row[2]}
+    load_some_geodata(session, subnets_data, True)
+
+    # ips_data = {row[0]: row[1] for row in data if row[1]}
+    # top_level_ips = filter_ip(ips_data, subnets_data)
+    # sample = {_id: top_level_ips[_id] for _id in random.sample(top_level_ips.keys(), 10)}
+    # load_some_geodata(session, sample)
                       
-        session.commit()
+    session.commit()
 
 
 if __name__ == '__main__':
@@ -189,4 +201,4 @@ if __name__ == '__main__':
     session = Session()
     parse_blocked(session, 'data/dump2.xml')  
     generate_cwd(session)
-    load_geo(session)  
+    load_geodata(session)  

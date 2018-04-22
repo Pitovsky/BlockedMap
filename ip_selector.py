@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 import ipaddress
 
 
-local_name = 'sqlite:///roskomsvoboda.db'
+local_name = 'sqlite:///roskomsvoboda_noval.db'
 engine = create_engine(local_name, echo=False)
 
 
@@ -37,6 +37,34 @@ def where_clause(orgs, ts_low, ts_high):
 	return query + ' group by latitude, longitude'
 		
 
+def filter_ip(ip_dict, subnet_dict):
+	top_level_ip = {}
+	networks_binary = []
+	# get all networks in binary format
+	for _id, subnet in subnet_dict.items():
+		network = ipaddress.ip_network(subnet, strict=True)
+		networks_binary.append((get_bin_ip(ipaddress.ip_address(network.network_address)).rstrip('0'), _id, network))
+	networks_binary.sort(key=lambda x:x[0])
+	# get top networks (sorted lexicographically)
+	networks_top = []
+	current_top_addr, current_top_network = None, None
+	for addr, _id, network in networks_binary:
+		if current_top_addr is None or not addr.startswith(current_top_addr):
+			current_top_addr, current_top_network = addr, network
+			networks_top.append((current_top_addr, current_top_network))
+			# top_level_id.append(_id)
+	# get top-level individual ips
+	for _id, ip in ip_dict.items():
+		bin_addr = get_bin_ip(ipaddress.ip_address(ip)).rstrip('0')
+		found = False
+		for addr, network in networks_top:
+			if bin_addr.startswith(addr):
+				found = True
+		if not found:
+			top_level_ip[_id] = ip
+	return top_level_ip
+
+
 def select_ip(orgs=[], ts_low=datetime.min, ts_high=datetime.max):
 	query = 'select latitude, longitude, sum(2 << (31 - length(prefix))) from blocked_ip'
 	query += ' join geo_prefix on (prefix between (ip_bin || \'0\') and (ip_bin || \'1\')) or (prefix = ip_bin)'
@@ -46,7 +74,7 @@ def select_ip(orgs=[], ts_low=datetime.min, ts_high=datetime.max):
 	query += 'select latitude, longitude, count(*) from blocked_ip'
 	query += ' join block_geo on (block_id = blocked_ip.id) and (ip_subnet is null)'
 	query += where_clause(orgs, ts_low, ts_high)
-	#print(query)
+	# print(query)
 	return engine.execute(query)
 
 
