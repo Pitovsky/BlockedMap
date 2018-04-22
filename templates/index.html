@@ -21,7 +21,15 @@
         <link rel="stylesheet" href={{ url_for("static", filename="css/bootstrap.min.css") }}>
     </head>
     <body>
-        <div class="row" style="margin-top: 60px">
+        <div class="row" style="margin-top: 10px; text-align: center;">
+          <div class="col-md-9">
+              <h2 class="container">Карта блокировки датацентров</h2>
+              <h4>Где не стоит разворачивать свой сервис? Что новенького в реестре? Где находятся сервера, которые не любит ФСКН?</h4>
+              <h5 class="container">Радиус круга соотносится с количеством заблокированных IP-адресов на этой локации</h5>
+              <h5 class="container">Воспользуйтесь меню справа для фильтрации по ведомствам и дате внесения в реестр</h5>
+          </div>
+        </div>
+        <div class="row" style="margin-top: 30px">
           <div class="col-md-9">
               <div id="map-container" class="map"></div>
           </div>
@@ -31,6 +39,10 @@
               <div class="card-body">
                <form action="/filter" method="post" target="dummyframe" id="submitform">
                   <fieldset class="form-group">
+                      <div class="custom-control custom-checkbox">
+                      <input type="checkbox" class="custom-control-input" id="select_all">
+                          <label class="custom-control-label" for="select_all"><u>Выбрать все</u></label>
+                      </div>
                       <div class="custom-control custom-checkbox">
                           <input type="checkbox" class="custom-control-input" id="FNS" name="FNS">
                           <label class="custom-control-label" for="FNS">ФНС</label>
@@ -108,40 +120,11 @@
             defaultLayers.normal.map,
             mapOptions);
 
-          map.addObject(new H.map.Marker(MoscowCoordinates));
-
-          // var customStyle = {
-          //   strokeColor: 'black',
-          //   fillColor: 'rgba(170, 85, 0, 0.5',
-          //   lineWidth: 10,
-          //   lineCap: 'circle',
-          //   lineJoin: 'bevel'
-          // };
-          
           var circles = []
 
-          /*{% for point in points %}
-            circles.push({size: {{point[2]}}, geom: new H.map.Circle(
-              { lat: {{point[0]}}, lng: {{point[1]}} }, 32000*Math.log({{point[2]}})*Math.cos((180 / Math.PI)*{{point[0]}}) + 500,
-              {style: {fillColor: 'rgba(200, 10, 0, 0.5', strokeColor: 'black', lineWidth: 0.3}})
-            });
-          {% endfor %}
-
-          {% for point in valezhnik %}
-            circles.push({size: {{point[2]}}, geom: new H.map.Circle(
-              { lat: {{point[0]}}, lng: {{point[1]}} }, 32000*Math.log({{point[2]}})*Math.cos((180 / Math.PI)*{{point[0]}}) + 500,
-              {style: {fillColor: 'rgba(10, 200, 0, 0.5', strokeColor: 'black', lineWidth: 0.3}})
-            });
-          {% endfor %}
-          
-          for (var i = 0; i < circles.length; ++i) {
-            map.addObject(circles[i].geom);
-          }*/
-          
           map.setBaseLayer(defaultLayers.terrain.map);
           var behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
           var ui = H.ui.UI.createDefault(map, defaultLayers);
-          
           
           setInterval(function() {
             for (var i = 0; i < circles.length; ++i) {
@@ -181,6 +164,19 @@
 
         <script src={{ url_for("static", filename="js/bootstrap.min.js") }}></script>
         <script type="text/javascript">
+        $("#select_all").change(function(){ 
+            $(":checkbox").prop('checked', $(this).prop("checked")); //change all ".checkbox" checked status
+        });
+ 
+        $(':checkbox').change(function(){ 
+            if(false == $(this).prop("checked")){ //if this item is unchecked
+                $("#select_all").prop('checked', false); //change "select all" checked status to false
+            }
+            if ($(':checkbox:checked').length == $(':checkbox').length ){
+              $("#select_all").prop('checked', true);
+            }
+        });
+
         $(function() {
 
             var start = moment().subtract(29, 'days');

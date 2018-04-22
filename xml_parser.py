@@ -106,7 +106,6 @@ def parse_blocked(session, xml_path):
         root = etree.fromstring(xml)
         data = {}
 
-        # print(root.attrib)
         data['content_id'] = root.attrib.get('id', '')
         data['include_time'] = root.attrib.get('includetime', '')
         data['entry_type'] = root.attrib.get('entrytype', '')
@@ -118,7 +117,6 @@ def parse_blocked(session, xml_path):
         data['org'] = decision.attrib.get('org', '')
 
         for ip in set(ip.text.strip('\n') for ip in root.findall('./ip')):
-            #print(ip)
             data['ip'] = ip
             session.add(BlockedIpData(data))
         data['ip'] = None
@@ -178,7 +176,6 @@ def load_some_geodata(session, addresses, is_subnet=False):
                 if not prefix_bin in prefix_bins:
                     prefix_bins.append(prefix_bin)
             for prefix in prefix_bins:
-                print(block_geo.id, prefix)
                 session.add(GeoPrefix(block_geo.id, prefix))
 
 def load_geodata(session):
@@ -200,5 +197,6 @@ if __name__ == '__main__':
 
     session = Session()
     parse_blocked(session, 'data/dump2.xml')  
-    generate_cwd(session)
-    load_geodata(session)  
+    # generate_cwd(session)
+    load_geodata(session)
+
