@@ -148,6 +148,9 @@ def generate_cwd(session):
         session.add(BlockedIpData(data))
     session.commit()
     
+def get_geodata_for_ip(addr):
+    return requests.get('https://stat.ripe.net/data/geoloc/data.json?resource=' + addr).json()
+
 def load_some_geodata(session, addresses, is_subnet=False):
     geo_map = dict()
     for block_id, addr in tqdm(addresses.items()):
@@ -161,7 +164,7 @@ def load_some_geodata(session, addresses, is_subnet=False):
             response = {'data':{'locations':[loc]}}
         else:
             time.sleep(0.16) #API limitations
-            response = requests.get('https://stat.ripe.net/data/geoloc/data.json?resource=' + addr).json()
+            response = get_geodata_for_ip(addr)
         geo_map[block_id] = response['data']['locations']
 
     for block_id, locations in geo_map.items():
