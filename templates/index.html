@@ -9,6 +9,7 @@
         <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-core.js"></script>
         <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-service.js"></script>
         <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-ui.js"></script>
+        <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-pano.js"></script>
         <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-mapevents.js"></script>
         <script type="text/javascript" src="//cdn.jsdelivr.net/jquery/1/jquery.min.js"></script>
         <script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
@@ -147,6 +148,11 @@
             map.addObject(circles[i].geom);
           }
           
+          map.setBaseLayer(defaultLayers.terrain.map);
+          var behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
+          var ui = H.ui.UI.createDefault(map, defaultLayers);
+          
+          
           setInterval(function() {
             for (var i = 0; i < circles.length; ++i) {
               var lat = circles[i].geom.getCenter().lat;
@@ -158,9 +164,6 @@
           window.addEventListener('resize', function () {
             map.getViewPort().resize();
           });
-
-          var behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
-          var ui = H.ui.UI.createDefault(map, defaultLayers);
         </script>
 
         <script src={{ url_for("static", filename="js/bootstrap.min.js") }}></script>
