@@ -14,10 +14,12 @@ from sqlalchemy.pool import NullPool
 from sqlalchemy.schema import Index
 from lxml import etree
 from ipaddress import ip_network, ip_address
-import requests
 from tqdm import tqdm
+import glob
+import zipfile
 
 from ip_selector import Org, get_bin_prefix, get_bin_ip, filter_ip
+from maxmind_client import get_locations_for_ip
 
 logger = logging.getLogger(__name__)
 local_name = 'sqlite:///roskomsvoboda.db'
@@ -99,9 +101,8 @@ class GeoPrefix(Base):
         self.prefix = prefix
 
 
-def parse_blocked(session, xml_path):
-    handler = open(xml_path).read()
-    soup = Soup(handler, "lxml")
+def parse_blocked(session, xml):
+    soup = Soup(xml, "lxml")
     for content in soup.select("content"):
         xml = content.__str__()
         root = etree.fromstring(xml)
@@ -148,9 +149,6 @@ def generate_cwd(session):
         session.add(BlockedIpData(data))
     session.commit()
     
-def get_geodata_for_ip(addr):
-    return requests.get('https://stat.ripe.net/data/geoloc/data.json?resource=' + addr).json()
-
 def load_some_geodata(session, addresses, is_subnet=False):
     geo_map = dict()
     for block_id, addr in tqdm(addresses.items()):
@@ -161,11 +159,15 @@ def load_some_geodata(session, addresses, is_subnet=False):
             loc['longitude'] = random.uniform(29.307, 135.654)
             loc['covered_percentage'] = 100
             loc['prefixes'] = [addr]
-            response = {'data':{'locations':[loc]}}
+            locations = [loc]
         else:
-            time.sleep(0.16) #API limitations
-            response = get_geodata_for_ip(addr)
-        geo_map[block_id] = response['data']['locations']
+            try:
+                locations = get_locations_for_ip(addr, is_subnet)
+                if not locations:
+                    continue
+            except:
+                continue
+        geo_map[block_id] = locations
 
     for block_id, locations in geo_map.items():
         for loc in locations:
@@ -186,12 +188,14 @@ def load_geodata(session):
     data = session.query(BlockedIpData.id, BlockedIpData.ip, BlockedIpData.ip_subnet).all()
     session.rollback()
     subnets_data = {row[0]: row[2] for row in data if row[2]}
-    load_some_geodata(session, subnets_data, True)
+    # load_some_geodata(session, subnets_data, True)
 
-    # ips_data = {row[0]: row[1] for row in data if row[1]}
-    # top_level_ips = filter_ip(ips_data, subnets_data)
-    # sample = {_id: top_level_ips[_id] for _id in random.sample(top_level_ips.keys(), min(NUM_INDIVIDUAL_IPS, len(top_level_ips)))}
-    # load_some_geodata(session, sample)
+    ips_data = {row[0]: row[1] for row in data if row[1]}
+    print(len(ips_data))
+    top_level_ips = filter_ip(ips_data, {})
+    print(len(top_level_ips))
+    sample = {_id: top_level_ips[_id] for _id in random.sample(top_level_ips.keys(), min(NUM_INDIVIDUAL_IPS, len(top_level_ips)))}
+    load_some_geodata(session, top_level_ips)
                       
     session.commit()
 
@@ -200,7 +204,13 @@ if __name__ == '__main__':
     Base.metadata.create_all(engine)
 
     session = Session()
-    parse_blocked(session, 'data/dump2.xml')  
-    generate_cwd(session)
-    load_geodata(session)
-
+    for zip_path in tqdm(glob.glob('./data/dump_zip/*.zip')):
+        try:
+            zip_dump = zipfile.ZipFile(zip_path)
+            parse_blocked(session, zip_dump.open('dump.xml').read())  
+        except:
+            print('ERROR: ' + zip_path)
+            continue
+    # generate_cwd(session)
+    # load_geodata(session)
+# 

@@ -54,14 +54,16 @@ def filter_ip(ip_dict, subnet_dict):
 			networks_top.append((current_top_addr, current_top_network))
 			# top_level_id.append(_id)
 	# get top-level individual ips
+	top_level_set = set()
 	for _id, ip in ip_dict.items():
 		bin_addr = get_bin_ip(ipaddress.ip_address(ip)).rstrip('0')
 		found = False
 		for addr, network in networks_top:
 			if bin_addr.startswith(addr):
 				found = True
-		if not found:
+		if not found and ip not in top_level_set:
 			top_level_ip[_id] = ip
+			top_level_set.add(ip)
 	return top_level_ip
 
 
