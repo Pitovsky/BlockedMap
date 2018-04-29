@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 import sys
 import time
 import random
@@ -18,17 +19,15 @@ from tqdm import tqdm
 import glob
 import zipfile
 
-from ip_selector import Org, get_bin_prefix, get_bin_ip, filter_ip
-from maxmind_client import get_locations_for_ip
+from ip_selector import Org, get_bin_prefix, get_bin_ip
+
 
 logger = logging.getLogger(__name__)
 local_name = 'sqlite:///roskomsvoboda.db'
 engine = create_engine(local_name, echo=False)
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
-NUM_INDIVIDUAL_IPS = 0
 
-count = 0
 
 class BlockedIpData(Base):
     __tablename__ = 'blocked_ip'
@@ -51,8 +50,6 @@ class BlockedIpData(Base):
     ip_bin_index = Index("ip_bin_index", ip_bin)
 
     def __init__(self, data):
-        # self.id = count
-        # count += 1
         self.content_id = data.get('content_id')
         self.include_time = data.get('include_time')
         self.entry_type = data.get('entry_type')
@@ -70,38 +67,7 @@ class BlockedIpData(Base):
         return "<BlockedIpData({0}, {1})>".format(self.content_id, self.ip)
 
 
-class BlockGeoData(Base):
-    __tablename__ = 'block_geo'
-    __table_args__ = {'sqlite_autoincrement': True}
-
-    id = Column('id', Integer, primary_key=True)
-    block_id = Column('block_id', Integer, ForeignKey('blocked_ip.id'))
-    longitude = Column('longitude', Float)
-    latitude = Column('latitude', Float)
-
-    def __init__(self, block_id, lon, lat):
-        self.block_id = block_id
-        self.longitude = lon
-        self.latitude = lat
-
-    def __repr__(self):
-        return "<IpGeoData({0}, {1})>".format(self.id, self.block_id)
-
-class GeoPrefix(Base):
-    __tablename__ = 'geo_prefix'
-    __table_args__ = {'sqlite_autoincrement': True}
-    
-    id = Column('id', Integer, primary_key=True)
-    geo_id = Column('geo_id', Integer, ForeignKey('block_geo.id'))
-    prefix = Column('prefix', String)
-    prefix_index = Index("prefix_index", prefix)
-    
-    def __init__(self, geo_id, prefix):
-        self.geo_id = geo_id
-        self.prefix = prefix
-
-
-def parse_blocked(session, xml):
+def parse_blocked_xml(session, xml):
     soup = Soup(xml, "lxml")
     for content in soup.select("content"):
         xml = content.__str__()
@@ -127,6 +93,7 @@ def parse_blocked(session, xml):
             session.add(BlockedIpData(data))
     session.commit()
 
+
 def generate_cwd(session):
     CWD_COUNT = 255
     CWD_SIZE_MIN = 2
@@ -148,69 +115,20 @@ def generate_cwd(session):
             data['ip'] = '127.15.' + str(i) + '.1'
         session.add(BlockedIpData(data))
     session.commit()
-    
-def load_some_geodata(session, addresses, is_subnet=False):
-    geo_map = dict()
-    for block_id, addr in tqdm(addresses.items()):
-        response = {}
-        if addr.startswith('127'):
-            loc = {}
-            loc['latitude'] = random.uniform(52.297, 63.996)
-            loc['longitude'] = random.uniform(29.307, 135.654)
-            loc['covered_percentage'] = 100
-            loc['prefixes'] = [addr]
-            locations = [loc]
-        else:
-            try:
-                locations = get_locations_for_ip(addr, is_subnet)
-                if not locations:
-                    continue
-            except:
-                continue
-        geo_map[block_id] = locations
-
-    for block_id, locations in geo_map.items():
-        for loc in locations:
-            block_geo = BlockGeoData(block_id, loc['longitude'], loc['latitude'])
-            session.add(block_geo)
-            session.flush()
-            prefix_bins = []
-            for prefix in loc['prefixes']:
-                prefix_bins.append(get_bin_prefix(ip_network(prefix)))
-            if is_subnet:
-                prefix_bin = get_bin_prefix(ip_network(addresses[block_id]))
-                if not prefix_bin in prefix_bins:
-                    prefix_bins.append(prefix_bin)
-            for prefix in prefix_bins:
-                session.add(GeoPrefix(block_geo.id, prefix))
-
-def load_geodata(session):
-    data = session.query(BlockedIpData.id, BlockedIpData.ip, BlockedIpData.ip_subnet).all()
-    session.rollback()
-    subnets_data = {row[0]: row[2] for row in data if row[2]}
-    # load_some_geodata(session, subnets_data, True)
-
-    ips_data = {row[0]: row[1] for row in data if row[1]}
-    print(len(ips_data))
-    top_level_ips = filter_ip(ips_data, {})
-    print(len(top_level_ips))
-    sample = {_id: top_level_ips[_id] for _id in random.sample(top_level_ips.keys(), min(NUM_INDIVIDUAL_IPS, len(top_level_ips)))}
-    load_some_geodata(session, top_level_ips)
-                      
-    session.commit()
 
 
-if __name__ == '__main__':
-    Base.metadata.create_all(engine)
-
-    session = Session()
-    for zip_path in tqdm(glob.glob('./data/dump_zip/*.zip')):
+def parse_all_zips(session, archive_dir):
+    for zip_path in tqdm(glob.glob(archive_dir + '/*.zip')):
         try:
             zip_dump = zipfile.ZipFile(zip_path)
-            parse_blocked(session, zip_dump.open('dump.xml').read())  
+            parse_blocked_xml(session, zip_dump.open('dump.xml').read())  
         except:
             print('ERROR: ' + zip_path)
             continue
-    # generate_cwd(session)
-    # load_geodata(session)
-# 
+
+
+if __name__ == '__main__':
+    # BlockedIpData.__table__.drop(engine)
+    Base.metadata.create_all(engine)
+    session = Session()
+    parse_all_zips(session, './data/dump_zip')
