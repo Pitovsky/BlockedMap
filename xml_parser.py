@@ -48,6 +48,7 @@ class BlockedIpData(Base):
     ip_bin = Column('ip_bin', String)
     
     ip_bin_index = Index("ip_bin_index", ip_bin)
+    org_index = Index("org_index", org)
 
     def __init__(self, data):
         self.content_id = data.get('content_id')
