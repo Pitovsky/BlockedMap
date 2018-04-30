@@ -19,7 +19,7 @@ class Org(Enum):
 	FNS = 'ФНС'
 	MVD = 'МВД'
 	MKS = 'Минкомсвязь'
-	CWD = 'Валежник'
+	# CWD = 'Валежник'
 
 
 def get_bin_ip(address):
@@ -29,9 +29,10 @@ def get_bin_prefix(network):
 	return str(bin(int(network.network_address.packed.hex(), 16)))[:network.prefixlen]
 
 
-def where_clause(orgs, ts_low, ts_high):
+def where_clause(orgs, ts_low, ts_high, blocked):
 	#TODO: parameterize with ?
-	query = ' where include_time > \'{0}\' and include_time < \'{1}\''.format(ts_low, ts_high)
+	time_field = "include_time" if blocked else "exclude_time"
+	query = ' where {2} is not null and {2} > \'{0}\' and {2} < \'{1}\''.format(ts_low, ts_high, time_field)
 	if len(orgs) > 0:
 		query += ' and org in (\'' + str('\', \''.join([org.value for org in orgs])) + '\')'
 	return query + ' group by latitude, longitude'
@@ -67,16 +68,15 @@ def filter_ip(ip_dict, subnet_dict):
 	return top_level_ip
 
 
-def select_ip(orgs=[], ts_low=datetime.min, ts_high=datetime.max):
+def select_ip(orgs=[], ts_low=datetime.min, ts_high=datetime.max, blocked=True):
 	query = 'select latitude, longitude, sum(2 << (31 - length(prefix))) from blocked_ip'
 	query += ' join geo_prefix on (prefix between (ip_bin || \'0\') and (ip_bin || \'1\')) or (prefix = ip_bin)'
 	query += ' join block_geo on (block_geo.id = geo_id)'
-	query += where_clause(orgs, ts_low, ts_high)
+	query += where_clause(orgs, ts_low, ts_high, blocked)
 	query += '  union '
 	query += 'select latitude, longitude, count(*) from blocked_ip'
 	query += ' join block_geo on (block_id = blocked_ip.id) and (ip_subnet is null)'
-	query += where_clause(orgs, ts_low, ts_high)
-	# print(query)
+	query += where_clause(orgs, ts_low, ts_high, blocked)
 	return engine.execute(query)
 
 
