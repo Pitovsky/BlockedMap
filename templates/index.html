@@ -102,9 +102,9 @@
             app_code: 'gzc292l_SP7HGieBMAxCtw',
           });
 
-          var MoscowCoordinates = {
-            lat: 55.7558,
-            lng: 37.6173
+          var RknCoordinates = {
+            lat: 55.7515732,
+            lng: 37.6363895
           };
 
           var mapOptions = {
@@ -121,6 +121,20 @@
             mapOptions);
 
           var circles = []
+
+          var iconUrl = '{{url_for("static", filename="img/scull.png")}}';
+
+var iconOptions = {
+      size: new H.math.Size(50, 50),
+              anchor: new H.math.Point(25, 25)
+};
+
+var markerOptions = {
+       icon: new H.map.Icon(iconUrl, iconOptions)
+};
+
+var marker = new H.map.Marker(RknCoordinates, markerOptions);
+map.addObject(marker);
 
           map.setBaseLayer(defaultLayers.terrain.map);
           var behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
