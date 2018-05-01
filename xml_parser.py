@@ -68,7 +68,8 @@ class BlockedIpData(Base):
         return "<BlockedIpData({0}, {1})>".format(self.content_id, self.ip)
 
 
-def parse_blocked_xml(session, xml):
+def parse_blocked_xml(session, xml_path):
+    xml = open(xml_path).read()
     soup = Soup(xml, "lxml")
     for content in soup.select("content"):
         xml = content.__str__()
@@ -132,4 +133,4 @@ if __name__ == '__main__':
     # BlockedIpData.__table__.drop(engine)
     Base.metadata.create_all(engine)
     session = Session()
-    parse_all_zips(session, './data/dump_zip')
+    parse_blocked_xml(session, './data/dump2.xml')
