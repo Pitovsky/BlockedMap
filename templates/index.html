@@ -93,6 +93,13 @@
             </div>
           </div>
         </div>
+
+        <script type="text/javascript">
+            var platform = new H.service.Platform({
+              app_id: {{ app_id }},
+              app_code: {{ app_code }},
+            });
+        </script>
   
         <script src={{ url_for("static", filename="js/circles.js") }}></script>
         <script src={{ url_for("static", filename="js/helpers.js") }}></script>

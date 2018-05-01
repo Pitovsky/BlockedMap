@@ -1,10 +1,5 @@
 var mapContainer = document.getElementById('map-container');
 
-var platform = new H.service.Platform({
-  app_id: 'o8laThovktF2GpayPtsu',
-  app_code: 'gzc292l_SP7HGieBMAxCtw',
-});
-
 var RknCoordinates = {
   lat: 55.7558,
   lng: 37.6173

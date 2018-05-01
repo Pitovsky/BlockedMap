@@ -4,6 +4,7 @@ from urllib.parse import urlencode
 from PIL import Image
 from io import BytesIO
 from datetime import datetime
+import json
 
 from ip_selector import Org, select_ip
 
@@ -12,7 +13,7 @@ gps = []
 
 @app.route('/', methods=['GET'])
 def draw_map():
-    return render_template('index.html')
+    return render_template('index.html', app_id=app.app_id, app_code=app.app_code)
 
 @app.route('/filter',  methods=['POST'])
 def make_info():
@@ -32,4 +33,12 @@ def make_info():
     return jsonify(gps)
 
 if __name__ == '__main__':
+    try:
+        with open('credentials.json') as fin:
+            credentials = json.loads(fin.read())
+            app.app_id, app.app_code = credentials['app_id'], credentials['app_code']
+    except (KeyError, FileNotFoundError, json.decoder.JSONDecodeError) as e:
+        print("Error while reading HERE API credentials, proceed on your own risk!")
+        print(e)
+
     app.run()
