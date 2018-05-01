@@ -15,26 +15,30 @@ logger = logging.getLogger(__name__)
 Session = sessionmaker(bind=engine)
 
 
+def fill_data(fields):
+    data = {}
+    data['decision_date'] = fields[5]
+    data['decision_number'] = fields[4]
+    data['org'] = fields[3]
+
+    for ip in str(fields[0]).split('|'): 
+        ip = ip.strip()
+        data['ip_subnet'] = None
+        data['ip'] = None
+        if '/' in ip:
+            data['ip_subnet'] = ip
+        else:
+            data['ip'] = ip
+        yield data
+
+
 def parse_blocked_csv(session, csv):
     df = pd.read_csv(csv, encoding='cp1251', sep=';', skiprows=1, header=None)
     df = df[df[0].isnull() == False]
     for index, row in df.iterrows():
-        # print(row)
-        data = {}
-
-        data['include_time'] = row[5]
-        data['decision_date'] = data['include_time']
-        data['decision_number'] = row[4]
-        data['org'] = row[3]
-
-        for ip in str(row[0]).split('|'): 
-            ip = ip.strip()
-            if '/' in ip:
-                data['ip_subnet'] = ip
-            else:
-                data['ip'] = ip
-            # print(data)
-            # input()
+        for data in fill_data(row):
+            data['include_time'] = row[5]
+            data['exclude_time'] = None
             session.add(BlockedIpData(data))
     session.commit()
 
