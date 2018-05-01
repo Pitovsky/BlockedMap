@@ -21,7 +21,7 @@ Session = sessionmaker(bind=engine)
 
 def load_some_geodata(session, addresses, is_subnet=False):
     geo_map = dict()
-    for block_id, addr in tqdm(addresses.items()):
+    for block_id, addr in addresses.items():
         response = {}
         if addr.startswith('127'):
             loc = {}
