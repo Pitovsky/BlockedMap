@@ -96,9 +96,11 @@
 
         <script type="text/javascript">
             var platform = new H.service.Platform({
-              app_id: {{ app_id }},
-              app_code: {{ app_code }},
+              app_id: "{{ app_id }}",
+              app_code: "{{ app_code }}",
             });
+
+            var iconUrl = "{{ url_for("static", filename="img/scull.png") }}";
         </script>
   
         <script src={{ url_for("static", filename="js/circles.js") }}></script>

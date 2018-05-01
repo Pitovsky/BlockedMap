@@ -21,8 +21,6 @@ var map = new H.Map(
 var circles = []
 
 
-var iconUrl = "/static/img/scull.png";
-
 var iconOptions = {
   size: new H.math.Size(50, 50),
   anchor: new H.math.Point(25, 25)
