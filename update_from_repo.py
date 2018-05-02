@@ -120,7 +120,10 @@ def update(repo, session):
                     raise Exception("Bad ip data: " + str(removed))
             except Exception as e:
                 logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, removed, e))
-        session.commit()
+        try:
+            session.commit()
+        except Exception as e:
+            logger.error('Commit failed: {0}\t{1}'.format(commit, date))
 
 
 if __name__ == '__main__':
