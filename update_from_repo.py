@@ -34,6 +34,7 @@ def get_changes(repo_path):
                           ignore_space_at_eol=True, diff_filter='cr')
         except Exception as e:
             logger.error('{0}\t{1}\t{2}'.format(commit, prev, e))
+            continue
         if len(diffs) == 0:
             continue
         assert(len(diffs) == 1)
