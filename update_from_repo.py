@@ -28,9 +28,12 @@ def get_changes(repo_path):
     for commit in fetched:
         assert(len(commit.parents) == 1) # linear repo
         prev = commit.parents[0]
-        diffs = prev.diff(commit, paths='dump.csv', 
+        try:
+            diffs = prev.diff(commit, paths='dump.csv', 
                           create_patch=True, ignore_blank_lines=True, 
                           ignore_space_at_eol=True, diff_filter='cr')
+        except Exception as e:
+            logger.error('{0}\t{1}\t{2}'.format(commit, prev, e))
         if len(diffs) == 0:
             continue
         assert(len(diffs) == 1)
@@ -50,7 +53,6 @@ def get_changes(repo_path):
 def update(repo, session): 
     for commit, added, removed in tqdm(get_changes(repo)):
         date = datetime.datetime.fromtimestamp(commit.committed_date).strftime('%Y-%m-%d')
-        print(commit, date, len(added), len(removed))
         removed_ip, added_ip = set(), set()
         for removed_diff in removed:
             try:
@@ -70,6 +72,7 @@ def update(repo, session):
                 logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, added_diff, e))
         added_ip_clean = added_ip - removed_ip
         removed_ip_clean = removed_ip - added_ip
+        print(commit, date, len(added), len(removed), len(added_ip_clean), len(removed_ip_clean))
         for added in map(dict, added_ip_clean):
             added['include_time'] = date
             added['exclude_time'] = None
