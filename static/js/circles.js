@@ -32,10 +32,21 @@ var markerOptions = {
 var marker = new H.map.Marker(RknCoordinates, markerOptions);
 map.addObject(marker);
 
+var mapTileService = platform.getMapTileService({
+    type: 'base'
+  }),
+  russianMapLayer = mapTileService.createTileLayer(
+    'maptile',
+    'normal.day',
+    256,
+    'png8',
+    {lg: 'RUS'}
+  );
+map.setBaseLayer(russianMapLayer);
 
-map.setBaseLayer(defaultLayers.terrain.map);
+
 var behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
-var ui = H.ui.UI.createDefault(map, defaultLayers);
+var ui = H.ui.UI.createDefault(map, defaultLayers, 'ru-RU');
 
 setInterval(function() {
   for (var i = 0; i < circles.length; ++i) {
