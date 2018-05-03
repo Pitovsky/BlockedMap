@@ -109,9 +109,7 @@ $('#submitform').submit(function(e){
           { lat: points[i].lat, lng: points[i].lng },
           prettyScaling(points[i].count, 2 << map.getZoom())*Math.cos((180 / Math.PI)*points[i].lat),
           {style: {fillColor: 'rgba(0, 0, 0, 0)', strokeColor: 'black', lineWidth: 2.0}})
-
-        console.log(circle);
-
+        
         circles.push({size: points[i].count, geom: circle});
 
         map.addObject(circle);
