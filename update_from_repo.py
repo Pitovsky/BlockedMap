@@ -37,9 +37,6 @@ def get_changes(repo_path, squash=False):
             parent = commit
     if squash:
         print('Squashed: {0} diffs are compared!'.format(len(squashed_commits)))
-    repo.heads.master.set_commit(parent)
-    repo.heads.master.checkout(force=True)
-    print('Head is now at {0}, {1} commits behind origin.'.format(repo.heads.master.commit, len(list(repo.iter_commits('HEAD..origin')))))
     d = difflib.Differ()
     for prev, commit in squashed_commits:
         try:
@@ -62,6 +59,10 @@ def get_changes(repo_path, squash=False):
             if line.startswith('-'):
                 removed.append(line)
         yield commit, added, removed
+    repo.heads.master.set_commit(parent)
+    repo.heads.master.checkout(force=True)
+    print('Head is now at {0}, {1} commits behind origin.'.format(repo.heads.master.commit, len(list(repo.iter_commits('HEAD..origin')))))
+
 
 def update(repo, session): 
     for commit, added, removed in tqdm(get_changes(repo, True)):
@@ -136,5 +137,4 @@ def update(repo, session):
 
 if __name__ == '__main__':
     session = Session()
-    init_db.init()
     update('../z-i/', session)
