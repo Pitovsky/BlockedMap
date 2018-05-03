@@ -7,8 +7,8 @@ import os, logging
 import pandas as pd
 from sqlalchemy.orm import sessionmaker
 
-import init_bd
-from init_bd import BlockedIpData, engine
+import init_db
+from init_db import BlockedIpData, engine
 
 
 logger = logging.getLogger(__name__)
