@@ -12,7 +12,7 @@ from ip_selector import Org, select_ip
 locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
 
 blocked_color = 'rgba(200, 10, 0, {})'
-unlocked_color = 'rgba(40, 160, 0, {})'
+unlocked_color = 'rgba(40, 200, 0, {})'
 
 app = Flask(__name__, static_folder='static')
 gps = []

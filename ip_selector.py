@@ -69,24 +69,25 @@ def filter_ip(ip_dict, subnet_dict):
 
 
 def select_ip(orgs=[], ts_low=datetime.min, ts_high=datetime.max):
-	query = 'select latitude, longitude, sum(2 << (31 - length(prefix))), 0, include_time as time from blocked_ip'
-	query += ' join geo_prefix on (prefix between (ip_bin || \'0\') and (ip_bin || \'1\')) or (prefix = ip_bin)'
-	query += ' join block_geo on (block_geo.id = geo_id)'
-	query += where_clause(orgs, ts_low, ts_high, False)
-	query += ' union '
-	query += 'select latitude, longitude, count(*), 0, include_time as time from blocked_ip'
-	query += ' join block_geo on (block_id = blocked_ip.id) and (ip_subnet is null)'
-	query += where_clause(orgs, ts_low, ts_high, False)
-	query += ' union '
-	query += 'select latitude, longitude, sum(2 << (31 - length(prefix))), 1, exclude_time as time from blocked_ip'
+	# sorry about that..
+	query = 'select latitude, longitude, sum(2 << (31 - length(prefix))), 1 as type, max(include_time) as time from blocked_ip'
 	query += ' join geo_prefix on (prefix between (ip_bin || \'0\') and (ip_bin || \'1\')) or (prefix = ip_bin)'
 	query += ' join block_geo on (block_geo.id = geo_id)'
 	query += where_clause(orgs, ts_low, ts_high, True)
+	query += ' union '
+	query += 'select latitude, longitude, count(*), 1 as type, max(include_time) as time from blocked_ip'
+	query += ' join block_geo on (block_id = blocked_ip.id) and (ip_subnet is null)'
+	query += where_clause(orgs, ts_low, ts_high, True)
+	query += ' union '
+	query += 'select latitude, longitude, sum(2 << (31 - length(prefix))), 0 as type, max(exclude_time) as time from blocked_ip'
+	query += ' join geo_prefix on (prefix between (ip_bin || \'0\') and (ip_bin || \'1\')) or (prefix = ip_bin)'
+	query += ' join block_geo on (block_geo.id = geo_id)'
+	query += where_clause(orgs, ts_low, ts_high, False)
 	query += '  union '
-	query += 'select latitude, longitude, count(*), 1, exclude_time as time from blocked_ip'
+	query += 'select latitude, longitude, count(*), 0 as type, max(exclude_time) as time from blocked_ip'
 	query += ' join block_geo on (block_id = blocked_ip.id) and (ip_subnet is null)'
-	query += where_clause(orgs, ts_low, ts_high, True)
-	query += ' order by time'
+	query += where_clause(orgs, ts_low, ts_high, False)
+	query += ' order by time, type desc'
 	print(query)
 	return engine.execute(query)
 

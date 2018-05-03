@@ -50,7 +50,7 @@ var ui = H.ui.UI.createDefault(map, defaultLayers, 'ru-RU');
 
 function prettyScaling(size, zoom) {
   threshold = 32
-  base = 2 ** 10
+  base = 2 ** 10.5
   if (size < threshold) {
     radius = (size) / zoom;
   } else {
@@ -98,6 +98,19 @@ $('#submitform').submit(function(e){
           });
           ui.addBubble(bubble);
         }, false);
+
+        circles.push({size: points[i].count, geom: circle});
+
+        map.addObject(circle);
+      }
+
+      for (var i = 0; i < points.length; ++i) {
+        var circle = new H.map.Circle(
+          { lat: points[i].lat, lng: points[i].lng },
+          prettyScaling(points[i].count, 2 << map.getZoom())*Math.cos((180 / Math.PI)*points[i].lat),
+          {style: {fillColor: 'rgba(0, 0, 0, 0)', strokeColor: 'black', lineWidth: 2.0}})
+
+        console.log(circle);
 
         circles.push({size: points[i].count, geom: circle});
 
