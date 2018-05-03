@@ -5,8 +5,8 @@ import datetime
 import logging
 from tqdm import tqdm
 from csv_parser import fill_data
-import init_bd
-from init_bd import BlockedIpData, engine
+import init_db
+from init_db import BlockedIpData, engine
 from geodata_loader import load_some_geodata
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import update
@@ -17,17 +17,31 @@ fh = logging.FileHandler('errors.log')
 fh.setLevel(logging.DEBUG)
 logger.addHandler(fh)
 
-def get_changes(repo_path):
+def get_changes(repo_path, squash=False):
     repo = git.Repo(repo_path)
-    for remote in repo.remotes:
-        remote.fetch()
+    repo.remotes.origin.fetch()
     fetched = list(repo.iter_commits('HEAD..origin'))
     print('{0} commits are fetched!'.format(len(fetched)))
-    d = difflib.Differ()
+    print('Head is now at {0}.'.format(repo.heads.master.commit))
     fetched.reverse()
-    for commit in fetched:
+    squashed_commits = []
+    parent = repo.heads.master.commit
+    for commit, next_commit in zip(fetched, fetched[1:]):
         assert(len(commit.parents) == 1) # linear repo
-        prev = commit.parents[0]
+        if not squash:
+            squashed_commits.append((commit.parents[0], commit))
+            parent = commit
+            continue
+        if datetime.datetime.fromtimestamp(commit.committed_date).day != datetime.datetime.fromtimestamp(next_commit.committed_date).day:
+            squashed_commits.append((parent, commit))
+            parent = commit
+    if squash:
+        print('Squashed: {0} diffs are compared!'.format(len(squashed_commits)))
+    repo.heads.master.set_commit(parent)
+    repo.heads.master.checkout(force=True)
+    print('Head is now at {0}, {1} commits behind origin.'.format(repo.heads.master.commit, len(list(repo.iter_commits('HEAD..origin')))))
+    d = difflib.Differ()
+    for prev, commit in squashed_commits:
         try:
             diffs = prev.diff(commit, paths='dump.csv', 
                           create_patch=True, ignore_blank_lines=True, 
@@ -48,11 +62,9 @@ def get_changes(repo_path):
             if line.startswith('-'):
                 removed.append(line)
         yield commit, added, removed
-    for remote in repo.remotes:
-        remote.pull()
 
 def update(repo, session): 
-    for commit, added, removed in tqdm(get_changes(repo)):
+    for commit, added, removed in tqdm(get_changes(repo, True)):
         date = datetime.datetime.fromtimestamp(commit.committed_date).strftime('%Y-%m-%d')
         removed_ip, added_ip = set(), set()
         for removed_diff in removed:
@@ -80,12 +92,10 @@ def update(repo, session):
             try:
                 if added['ip']:
                     obj = session.query(BlockedIpData).filter_by(ip=added['ip'], 
-                        org=added['org'], decision_date=added['decision_date'], 
-                        decision_number=added['decision_number']) 
+                        org=added['org'], decision_date=added['decision_date']) 
                 elif added['ip_subnet']:
                     obj = session.query(BlockedIpData).filter_by(ip_subnet=added['ip_subnet'], 
-                        org=added['org'], decision_date=added['decision_date'], 
-                        decision_number=added['decision_number'])
+                        org=added['org'], decision_date=added['decision_date'])
                 else:
                     raise Exception("Bad ip data: " + str(added))
                 if obj.first():
@@ -106,12 +116,10 @@ def update(repo, session):
             try:
                 if removed['ip']:
                     obj = session.query(BlockedIpData).filter_by(ip=removed['ip'], 
-                        org=removed['org'], decision_date=removed['decision_date'], 
-                        decision_number=removed['decision_number']) 
+                        org=removed['org'], decision_date=removed['decision_date']) 
                 elif removed['ip_subnet']:
                     obj = session.query(BlockedIpData).filter_by(ip_subnet=removed['ip_subnet'], 
-                        org=removed['org'], decision_date=removed['decision_date'], 
-                        decision_number=removed['decision_number'])
+                        org=removed['org'], decision_date=removed['decision_date'])
                 else:
                     raise Exception("Bad ip data: " + str(removed))
                 if obj.first():
