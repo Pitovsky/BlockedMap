@@ -136,4 +136,5 @@ def update(repo, session):
 
 if __name__ == '__main__':
     session = Session()
+    init_db.init()
     update('../z-i/', session)
