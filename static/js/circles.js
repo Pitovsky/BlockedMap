@@ -77,10 +77,12 @@ $('#submitform').submit(function(e){
     url: '/filter',
     type: 'post',
     data: $('#submitform').serialize(),
-    success: function(points){
+    success: function(points) {
       for (var i = 0; i < circles.length; ++i) {
         map.removeObject(circles[i].geom);
       }
+
+      circles = []
 
       for (var i = 0; i < points.length; ++i) {
         var circle = new H.map.Circle(
@@ -91,7 +93,6 @@ $('#submitform').submit(function(e){
         circle.setData(points[i].lat.toString() + ' ' + points[i].lng.toString());
 
         circle.addEventListener('tap', function (evt) {
-          console.log(evt.target);
           var bubble =  new H.ui.InfoBubble(evt.target.getCenter(), {
             content: evt.target.getData()
           });
@@ -108,8 +109,6 @@ $('#submitform').submit(function(e){
           { lat: points[i].lat, lng: points[i].lng },
           prettyScaling(points[i].count, 2 << map.getZoom())*Math.cos((180 / Math.PI)*points[i].lat),
           {style: {fillColor: 'rgba(0, 0, 0, 0)', strokeColor: points[i].fill_color, lineWidth: 1.0}})
-
-        console.log(circle);
 
         circles.push({size: points[i].count, geom: circle});
 
