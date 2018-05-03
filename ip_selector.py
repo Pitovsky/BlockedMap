@@ -68,15 +68,26 @@ def filter_ip(ip_dict, subnet_dict):
 	return top_level_ip
 
 
-def select_ip(orgs=[], ts_low=datetime.min, ts_high=datetime.max, blocked=True):
-	query = 'select latitude, longitude, sum(2 << (31 - length(prefix))) from blocked_ip'
+def select_ip(orgs=[], ts_low=datetime.min, ts_high=datetime.max):
+	query = 'select latitude, longitude, sum(2 << (31 - length(prefix))), 0, include_time as time from blocked_ip'
 	query += ' join geo_prefix on (prefix between (ip_bin || \'0\') and (ip_bin || \'1\')) or (prefix = ip_bin)'
 	query += ' join block_geo on (block_geo.id = geo_id)'
-	query += where_clause(orgs, ts_low, ts_high, blocked)
-	query += '  union '
-	query += 'select latitude, longitude, count(*) from blocked_ip'
+	query += where_clause(orgs, ts_low, ts_high, False)
+	query += ' union '
+	query += 'select latitude, longitude, count(*), 0, include_time as time from blocked_ip'
 	query += ' join block_geo on (block_id = blocked_ip.id) and (ip_subnet is null)'
-	query += where_clause(orgs, ts_low, ts_high, blocked)
+	query += where_clause(orgs, ts_low, ts_high, False)
+	query += ' union '
+	query += 'select latitude, longitude, sum(2 << (31 - length(prefix))), 1, exclude_time as time from blocked_ip'
+	query += ' join geo_prefix on (prefix between (ip_bin || \'0\') and (ip_bin || \'1\')) or (prefix = ip_bin)'
+	query += ' join block_geo on (block_geo.id = geo_id)'
+	query += where_clause(orgs, ts_low, ts_high, True)
+	query += '  union '
+	query += 'select latitude, longitude, count(*), 1, exclude_time as time from blocked_ip'
+	query += ' join block_geo on (block_id = blocked_ip.id) and (ip_subnet is null)'
+	query += where_clause(orgs, ts_low, ts_high, True)
+	query += ' order by time'
+	print(query)
 	return engine.execute(query)
 
 

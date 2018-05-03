@@ -48,10 +48,21 @@ map.setBaseLayer(russianMapLayer);
 var behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
 var ui = H.ui.UI.createDefault(map, defaultLayers, 'ru-RU');
 
+function prettyScaling(size, zoom) {
+  threshold = 32
+  base = 2 ** 10
+  if (size < threshold) {
+    radius = (size) / zoom;
+  } else {
+    radius = (threshold + Math.log(size - threshold + 1)) / zoom;
+  }
+  return base + radius * (2 ** 20 / threshold);
+}
+
 setInterval(function() {
   for (var i = 0; i < circles.length; ++i) {
     var lat = circles[i].geom.getCenter().lat;
-    circles[i].geom.setRadius((256000*Math.log(circles[i].size)*Math.cos((180 / Math.PI)*lat) + 500) / (2 << map.getZoom()));
+    circles[i].geom.setRadius(prettyScaling(circles[i].size, 2 << map.getZoom())*Math.cos((180 / Math.PI)*lat));
   }
 }, 500);
 
@@ -76,7 +87,7 @@ $('#submitform').submit(function(e){
       for (var i = 0; i < points.length; ++i) {
         circle = new H.map.Circle(
           { lat: points[i].lat, lng: points[i].lng },
-          (256000*Math.log(points[i].count)*Math.cos((180 / Math.PI)*points[i].lat) + 500) / (2 << map.getZoom()),
+          prettyScaling(points[i].count, 2 << map.getZoom())*Math.cos((180 / Math.PI)*points[i].lat),
           {style: {fillColor: points[i].color, strokeColor: 'black', lineWidth: 0.3}})
 
         circle.setData(points[i].lat.toString() + ' ' + points[i].lng.toString());

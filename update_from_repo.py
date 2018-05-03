@@ -86,7 +86,8 @@ def update(repo, session):
                 logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, added_diff, e))
         added_ip_clean = added_ip - removed_ip
         removed_ip_clean = removed_ip - added_ip
-        print(commit, date, len(added), len(removed), len(added_ip_clean), len(removed_ip_clean))
+        print(commit, date, len(added_ip), len(removed_ip), len(added_ip_clean), len(removed_ip_clean))
+        assert(len(added_ip) - len(added_ip_clean) != len(removed_ip) - len(removed_ip_clean))
         for added in map(dict, added_ip_clean):
             added['include_time'] = date
             added['exclude_time'] = None
@@ -137,4 +138,4 @@ def update(repo, session):
 
 if __name__ == '__main__':
     session = Session()
-    update('../z-i/', session)
+        update('../z-i/', session)
