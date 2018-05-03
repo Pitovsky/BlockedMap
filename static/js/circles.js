@@ -79,16 +79,14 @@ $('#submitform').submit(function(e){
     data: $('#submitform').serialize(),
     success: function(points){
       for (var i = 0; i < circles.length; ++i) {
-        map.removeObject(circles[i]);
+        map.removeObject(circles[i].geom);
       }
 
-      circles = []
-
       for (var i = 0; i < points.length; ++i) {
-        circle = new H.map.Circle(
+        var circle = new H.map.Circle(
           { lat: points[i].lat, lng: points[i].lng },
           prettyScaling(points[i].count, 2 << map.getZoom())*Math.cos((180 / Math.PI)*points[i].lat),
-          {style: {fillColor: points[i].color, strokeColor: 'black', lineWidth: 0.3}})
+          {style: {fillColor: points[i].fill_color, strokeColor: 'black', lineWidth: 0}})
 
         circle.setData(points[i].lat.toString() + ' ' + points[i].lng.toString());
 
@@ -99,6 +97,19 @@ $('#submitform').submit(function(e){
           });
           ui.addBubble(bubble);
         }, false);
+
+        circles.push({size: points[i].count, geom: circle});
+
+        map.addObject(circle);
+      }
+
+      for (var i = 0; i < points.length; ++i) {
+        var circle = new H.map.Circle(
+          { lat: points[i].lat, lng: points[i].lng },
+          prettyScaling(points[i].count, 2 << map.getZoom())*Math.cos((180 / Math.PI)*points[i].lat),
+          {style: {fillColor: 'rgba(0, 0, 0, 0)', strokeColor: points[i].fill_color, lineWidth: 1.0}})
+
+        console.log(circle);
 
         circles.push({size: points[i].count, geom: circle});
 

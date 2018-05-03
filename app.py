@@ -11,6 +11,9 @@ from ip_selector import Org, select_ip
 
 locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
 
+blocked_color = 'rgba(200, 10, 0, {})'
+unlocked_color = 'rgba(40, 160, 0, {})'
+
 app = Flask(__name__, static_folder='static')
 gps = []
 
@@ -34,7 +37,7 @@ def make_info():
     gps = [{'lat': p[0] if p[0] else 0, 
         'lng': p[1] if p[1] else 0, 
         'count': p[2] if p[2] else 0, 
-        'color': 'rgba(40, 160, 0, 0.8' if p[3] == 1 else 'rgba(200, 10, 0, 0.8'} 
+        'fill_color': unlocked_color.format(0.9) if p[3] == 1 else blocked_color.format(0.9)}
         for p in select_ip(orgs, ts_low, ts_high)]
     return jsonify(gps)
 
