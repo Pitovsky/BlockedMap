@@ -20,7 +20,6 @@ var map = new H.Map(
 
 var circles = []
 
-
 var iconOptions = {
   size: new H.math.Size(50, 50),
   anchor: new H.math.Point(25, 25)
@@ -53,21 +52,35 @@ window.addEventListener('resize', function () {
 $('#submitform').submit(function(e){
   e.preventDefault();
   $.ajax({
-    url:'/filter',
-    type:'post',
-    data:$('#submitform').serialize(),
-    success:function(points){
+    url: '/filter',
+    type: 'post',
+    data: $('#submitform').serialize(),
+    success: function(points){
       for (var i = 0; i < circles.length; ++i) {
-        map.removeObject(circles[i].geom);
+        map.removeObject(circles[i]);
       }
-      circles = [];
+
+      circles = []
+
       for (var i = 0; i < points.length; ++i) {
-        circles.push({size: points[i].count, geom: new H.map.Circle(
+        circle = new H.map.Circle(
           { lat: points[i].lat, lng: points[i].lng },
           (256000*Math.log(points[i].count)*Math.cos((180 / Math.PI)*points[i].lat) + 500) / (2 << map.getZoom()),
           {style: {fillColor: points[i].color, strokeColor: 'black', lineWidth: 0.3}})
-        });
-        map.addObject(circles[i].geom);
+
+        circle.setData(points[i].lat.toString() + ' ' + points[i].lng.toString());
+
+        circle.addEventListener('tap', function (evt) {
+          console.log(evt.target);
+          var bubble =  new H.ui.InfoBubble(evt.target.getCenter(), {
+            content: evt.target.getData()
+          });
+          ui.addBubble(bubble);
+        }, false);
+
+        circles.push({size: points[i].count, geom: circle});
+
+        map.addObject(circle);
       }
     }
   });

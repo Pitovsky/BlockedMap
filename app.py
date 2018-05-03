@@ -28,7 +28,7 @@ def make_info():
             ts_high = datetime.strptime(tss[1], "%B %d, %Y")
         else:
             orgs.append(getattr(Org, key))
-    gps = [{'lat': p[0], 'lng': p[1], 'count': p[2], 'color': 'rgba(200, 10, 0, 0.5'} for p in select_ip(orgs, ts_low, ts_high, blocked=True)] \
+    gps = [{'lat': p[0] or 0, 'lng': p[1] if p[1] else 0, 'count': p[2] if p[2] else 0, 'color': 'rgba(200, 10, 0, 0.5'} for p in select_ip(orgs, ts_low, ts_high, blocked=True)] \
      + [{'lat': p[0], 'lng': p[1], 'count': p[2], 'color': 'rgba(40, 160, 0, 0.9'} for p in select_ip(orgs, ts_low, ts_high, blocked=False)]
     return jsonify(gps)
 
