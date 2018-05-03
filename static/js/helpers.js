@@ -1,18 +1,17 @@
-$("#select_all").change(function(){ 
-    $(":checkbox").prop('checked', $(this).prop("checked")); //change all ".checkbox" checked status
+$("#select_all").change(function() { 
+    $(":checkbox").prop('checked', $(this).prop("checked"));
 });
 
 $(':checkbox').change(function(){ 
-    if(false == $(this).prop("checked")){ //if this item is unchecked
-        $("#select_all").prop('checked', false); //change "select all" checked status to false
+    if(false == $(this).prop("checked")) {
+        $("#select_all").prop('checked', false);
     }
-    if ($(':checkbox:checked').length == $(':checkbox').length ){
+    if ($(':checkbox:checked').length == $(':checkbox').length) {
       $("#select_all").prop('checked', true);
     }
 });
 
 $(function() {
-
     var start = moment().subtract(10, 'years');
     var end = moment();
 
@@ -21,14 +20,22 @@ $(function() {
     }
 
     $('#reportrange').daterangepicker({
+        "locale": {
+          "format": "MM/DD/YYYY",
+          "separator": " - ",
+          "applyLabel": "Применить",
+          "cancelLabel": "Отмена",
+          "customRangeLabel": "Другой период",
+          "firstDay": 1
+        },
         startDate: start,
         endDate: end,
         ranges: {
-           'Today': [moment(), moment()],
-           'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-           'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-           'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-           'This Month': [moment().startOf('month'), moment().endOf('month')]
+           // 'Сегодня': [moment(), moment()],
+           'Вчера': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+           'За неделю': [moment().subtract(6, 'days'), moment()],
+           'За месяц': [moment().subtract(1, 'months'), moment()],
+           'За год': [moment().subtract(12, 'months'), moment()]
         }
     }, cb);
 

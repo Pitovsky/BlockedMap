@@ -5,8 +5,11 @@ from PIL import Image
 from io import BytesIO
 from datetime import datetime
 import json
+import locale
 
 from ip_selector import Org, select_ip
+
+locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
 
 app = Flask(__name__, static_folder='static')
 gps = []
