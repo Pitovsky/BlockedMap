@@ -1,8 +1,12 @@
 import geoip2.database
 import time
 import requests
+import os
 
-reader = geoip2.database.Reader('./data/maxmind/GeoLite2-City.mmdb')
+
+BASEDIR = os.path.abspath(os.path.dirname(__file__))
+reader = geoip2.database.Reader(os.path.join(BASEDIR, './data/maxmind/GeoLite2-City.mmdb'))
+
 
 def get_locations_for_ip(addr, try_requests=True):
 	try:

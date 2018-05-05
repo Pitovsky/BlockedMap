@@ -3,6 +3,7 @@ import difflib
 import time
 import datetime
 import logging
+import os
 from tqdm import tqdm
 from csv_parser import fill_data
 import init_db
@@ -13,7 +14,8 @@ from sqlalchemy import update
 
 logger = logging.getLogger(__name__)
 Session = sessionmaker(bind=engine)
-fh = logging.FileHandler('errors.log')
+BASEDIR = os.path.abspath(os.path.dirname(__file__))
+fh = logging.FileHandler(os.path.join(BASEDIR, 'errors.log'))
 fh.setLevel(logging.DEBUG)
 logger.addHandler(fh)
 
@@ -87,7 +89,7 @@ def update(repo, session):
         added_ip_clean = added_ip - removed_ip
         removed_ip_clean = removed_ip - added_ip
         print(commit, date, len(added_ip), len(removed_ip), len(added_ip_clean), len(removed_ip_clean))
-        assert(len(added_ip) - len(added_ip_clean) != len(removed_ip) - len(removed_ip_clean))
+        assert(len(added_ip) - len(added_ip_clean) == len(removed_ip) - len(removed_ip_clean))
         for added in map(dict, added_ip_clean):
             added['include_time'] = date
             added['exclude_time'] = None
@@ -138,4 +140,5 @@ def update(repo, session):
 
 if __name__ == '__main__':
     session = Session()
-        update('../z-i/', session)
+    update(os.path.join(BASEDIR, '../z-i/'), session)
+    

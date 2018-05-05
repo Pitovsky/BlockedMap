@@ -41,13 +41,15 @@ def make_info():
         for p in select_ip(orgs, ts_low, ts_high)]
     return jsonify(gps)
 
-if __name__ == '__main__':
-    try:
-        with open('credentials.json') as fin:
-            credentials = json.loads(fin.read())
-            app.app_id, app.app_code = credentials['app_id'], credentials['app_code']
-    except (KeyError, FileNotFoundError, json.decoder.JSONDecodeError) as e:
-        print("Error while reading HERE API credentials, proceed on your own risk!")
-        print(e)
 
+try:
+    with open('credentials.json') as fin:
+        credentials = json.loads(fin.read())
+        app.app_id, app.app_code = credentials['app_id'], credentials['app_code']
+except (KeyError, FileNotFoundError, json.decoder.JSONDecodeError) as e:
+    print("Error while reading HERE API credentials, proceed on your own risk!")
+    print(e)
+
+
+if __name__ == '__main__':
     app.run()

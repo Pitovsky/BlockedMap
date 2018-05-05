@@ -16,7 +16,8 @@ from ip_selector import get_bin_prefix, get_bin_ip
 
 
 logger = logging.getLogger(__name__)
-db_name = 'sqlite:///roskomsvoboda.db'
+BASEDIR = os.path.abspath(os.path.dirname(__file__))
+db_name = 'sqlite://' + os.path.join( BASEDIR, 'roskomsvoboda.db')
 engine = create_engine(db_name, echo=False)
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
