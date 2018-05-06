@@ -10,6 +10,7 @@ from tqdm import tqdm
 from csv_parser import fill_data
 import init_db
 from init_db import BlockedIpData, engine
+from ip_selector import full_geo_cache, select_ip
 from geodata_loader import load_some_geodata
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import update
@@ -165,7 +166,13 @@ def update(repo, session):
             logger.error('Commit failed: {0}\t{1}'.format(commit, date))
 
 
+def make_cache():
+    with open(full_geo_cache, 'wb') as cache:
+        pickle.dump(select_ip(), cache)
+
+
 if __name__ == '__main__':
     session = Session()
     update(os.path.join(BASEDIR, '../z-i/'), session)
+    make_cache()
     

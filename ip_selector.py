@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 
 from enum import Enum
+import os
 from datetime import datetime
 import pandas as pd
 from sqlalchemy import create_engine
 import ipaddress
-from init_db import engine
+import pickle
+from init_db import engine, BASEDIR
+
+
+full_geo_cache = os.path.join(BASEDIR, 'full_geo_cache.pickle')
 
 
 class Org(Enum):
@@ -19,6 +24,8 @@ class Org(Enum):
 	MVD = 'МВД'
 	MKS = 'Минкомсвязь'
 	# CWD = 'Валежник'
+
+print(len(Org))
 
 
 def where_clause(orgs, ts_low, ts_high, blocked):
@@ -62,6 +69,9 @@ def filter_ip(ip_dict, subnet_dict):
 
 def select_ip(orgs=[], ts_low=datetime.min, ts_high=datetime.max):
 	# sorry about that..
+	if len(orgs) in (0, len(Org)) and ts_low == datetime.min and ts_high == datetime.max and os.path.isfile(full_geo_cache):
+		with open(full_geo_cache, 'rb') as cache:
+			return pickle.load(cache)
 	query = 'select latitude, longitude, sum(2 << (31 - length(prefix))), 1 as type, max(include_time) as time from blocked_ip'
 	query += ' join geo_prefix on (prefix between (ip_bin || \'0\') and (ip_bin || \'1\')) or (prefix = ip_bin)'
 	query += ' join block_geo on (block_geo.id = geo_id)'
@@ -80,8 +90,9 @@ def select_ip(orgs=[], ts_low=datetime.min, ts_high=datetime.max):
 	query += ' join block_geo on (block_id = blocked_ip.id) and (ip_subnet is null)'
 	query += where_clause(orgs, ts_low, ts_high, False)
 	query += ' order by time, type desc'
-	print(query)
-	return engine.execute(query)
+	# print(query)
+	data = engine.execute(query)
+	return data
 
 
 def smart_print(orgs):
