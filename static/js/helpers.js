@@ -46,5 +46,5 @@ $(function() {
 
 $(document).ready(function() {
     $("#submitform").submit();
-    $("#select_all").prop('checked', true);
+    $(":checkbox").prop('checked', true);
 });
