@@ -47,6 +47,7 @@ def get_changes(repo_path, squash=False):
     logger_info.info('Head is now at {0}.'.format(repo.heads.master.commit))
     fetched.reverse()
     squashed_commits = []
+    everything_alright = True
     parent = repo.heads.master.commit
     for commit, next_commit in zip(fetched, fetched[1:]):
         assert(len(commit.parents) == 1) # linear repo
@@ -81,9 +82,10 @@ def get_changes(repo_path, squash=False):
             if line.startswith('-'):
                 removed.append(line)
         yield commit, added, removed
-    repo.heads.master.set_commit(parent)
-    repo.heads.master.checkout(force=True)
-    logger_info.info('Head is now at {0}, {1} commits behind origin.'.format(repo.heads.master.commit, len(list(repo.iter_commits('HEAD..origin')))))
+    if everything_alright:
+        repo.heads.master.set_commit(parent)
+        repo.heads.master.checkout(force=True)
+        logger_info.info('Head is now at {0}, {1} commits behind origin.'.format(repo.heads.master.commit, len(list(repo.iter_commits('HEAD..origin')))))
 
 
 def update(repo, session): 
@@ -97,6 +99,7 @@ def update(repo, session):
                 for data in fill_data(removed_diff.strip('-').split(';')):
                     removed_ip.add(tuple(data.items()))
             except:
+                everything_alright = False
                 logger.error('{0}\t{1}\t{2}'.format(commit, date, removed_diff))
         for added_diff in added:
             try:
@@ -105,6 +108,7 @@ def update(repo, session):
                 for data in fill_data(added_diff.strip('+').split(';')):
                     added_ip.add(tuple(data.items()))
             except Exception as e:
+                everything_alright = False
                 logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, added_diff, e))
         added_ip_clean = added_ip - removed_ip
         removed_ip_clean = removed_ip - added_ip
@@ -135,6 +139,7 @@ def update(repo, session):
                     else:
                         load_some_geodata(session, {blocked_ip.id: blocked_ip.ip_subnet}, True)
             except Exception as e:
+                everything_alright = False
                 logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, added, e))
         for removed in map(dict, removed_ip_clean):
             try:
@@ -151,10 +156,12 @@ def update(repo, session):
                 else:
                     raise Exception("Bad ip data: " + str(removed))
             except Exception as e:
+                everything_alright = False
                 logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, removed, e))
         try:
             session.commit()
         except Exception as e:
+            everything_alright = False
             logger.error('Commit failed: {0}\t{1}'.format(commit, date))
 
 
