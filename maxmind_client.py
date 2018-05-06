@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import geoip2.database
 import time
 import requests
