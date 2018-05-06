@@ -9,9 +9,9 @@ from ipaddress import ip_network, ip_address
 from tqdm import tqdm
 
 from maxmind_client import get_locations_for_ip
-from ip_selector import get_bin_prefix, get_bin_ip, filter_ip
+from ip_selector import filter_ip
 import init_db
-from init_db import BlockedIpData, GeoPrefix, BlockGeoData, engine
+from init_db import BlockedIpData, GeoPrefix, BlockGeoData, engine, get_bin_prefix, get_bin_ip
 
 
 NUM_INDIVIDUAL_IPS = 0

@@ -12,8 +12,6 @@ from sqlalchemy.pool import NullPool
 from sqlalchemy.schema import Index
 from ipaddress import ip_network, ip_address
 
-from ip_selector import get_bin_prefix, get_bin_ip
-
 
 logger = logging.getLogger(__name__)
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
@@ -21,6 +19,13 @@ db_name = 'sqlite:///' + os.path.join(BASEDIR, 'roskomsvoboda.db')
 engine = create_engine(db_name, echo=False)
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
+
+
+def get_bin_ip(address):
+    return str(bin(int(address.packed.hex(), 16)))
+
+def get_bin_prefix(network):
+    return str(bin(int(network.network_address.packed.hex(), 16)))[:network.prefixlen]
 
 
 class BlockedIpData(Base):

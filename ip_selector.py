@@ -3,10 +3,7 @@ from datetime import datetime
 import pandas as pd
 from sqlalchemy import create_engine
 import ipaddress
-
-
-local_name = 'sqlite:///roskomsvoboda.db'
-engine = create_engine(local_name, echo=False)
+from init_db import engine
 
 
 class Org(Enum):
@@ -20,13 +17,6 @@ class Org(Enum):
 	MVD = 'МВД'
 	MKS = 'Минкомсвязь'
 	# CWD = 'Валежник'
-
-
-def get_bin_ip(address):
-	return str(bin(int(address.packed.hex(), 16)))
-
-def get_bin_prefix(network):
-	return str(bin(int(network.network_address.packed.hex(), 16)))[:network.prefixlen]
 
 
 def where_clause(orgs, ts_low, ts_high, blocked):
