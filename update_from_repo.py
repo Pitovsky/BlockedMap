@@ -19,7 +19,7 @@ Session = sessionmaker(bind=engine)
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
 
 logger = logging.getLogger('errors')
-logger_info = logging.getLogger('info')
+logger_info = logging.getLogger(__name__)
 # only errors here
 fh = logging.FileHandler(os.path.join(BASEDIR, 'errors.log'))
 fh.setLevel(logging.ERROR)
