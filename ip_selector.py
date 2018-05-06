@@ -25,8 +25,6 @@ class Org(Enum):
 	MKS = 'Минкомсвязь'
 	# CWD = 'Валежник'
 
-print(len(Org))
-
 
 def where_clause(orgs, ts_low, ts_high, blocked):
 	#TODO: parameterize with ?
@@ -67,9 +65,9 @@ def filter_ip(ip_dict, subnet_dict):
 	return top_level_ip
 
 
-def select_ip(orgs=[], ts_low=datetime.min, ts_high=datetime.max):
+def select_ip(orgs=[], ts_low=datetime.min, ts_high=datetime.max, use_cache=True):
 	# sorry about that..
-	if len(orgs) in (0, len(Org)) and ts_low == datetime.min and ts_high == datetime.max and os.path.isfile(full_geo_cache):
+	if use_cache and len(orgs) in (0, len(Org)) and ts_low == datetime.min and ts_high == datetime.max and os.path.isfile(full_geo_cache):
 		with open(full_geo_cache, 'rb') as cache:
 			return pickle.load(cache)
 	query = 'select latitude, longitude, sum(2 << (31 - length(prefix))), 1 as type, max(include_time) as time from blocked_ip'

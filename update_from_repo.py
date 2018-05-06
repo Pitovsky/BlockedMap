@@ -169,7 +169,7 @@ def update(repo, session):
 
 def make_cache():
     with open(full_geo_cache, 'wb') as cache:
-        pickle.dump(select_ip(), cache)
+        pickle.dump(select_ip(use_cache=False), cache)
 
 
 if __name__ == '__main__':
