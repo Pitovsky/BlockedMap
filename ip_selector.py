@@ -32,8 +32,7 @@ def where_clause(orgs, ts_low, ts_high, blocked):
 	#TODO: parameterize with ?
 	time_field = "include_time" if blocked else "exclude_time"
 	query = ' where {2} is not null and {2} >= \'{0}\' and {2} <= \'{1}\''.format(ts_low, ts_high, time_field)
-	if len(orgs) > 0:
-		query += ' and org in (\'' + str('\', \''.join([org.value for org in orgs])) + '\')'
+	query += ' and org in (\'' + str('\', \''.join([org.value for org in orgs])) + '\')'
 	return query + ' group by latitude, longitude'
 		
 
@@ -69,7 +68,7 @@ def filter_ip(ip_dict, subnet_dict):
 
 def select_ip(orgs=[], ts_low=min_date, ts_high=max_date, use_cache=True):
 	# sorry about that..
-	if use_cache and len(orgs) in (0, len(Org)) and ts_low == min_date and ts_high == max_date and os.path.isfile(full_geo_cache):
+	if use_cache and len(orgs) == len(Org) and ts_low == min_date and ts_high == max_date and os.path.isfile(full_geo_cache):
 		with open(full_geo_cache, 'rb') as cache:
 			try:
 				data = pickle.load(cache)
