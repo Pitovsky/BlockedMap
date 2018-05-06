@@ -9,6 +9,7 @@ import os
 from tqdm import tqdm
 from csv_parser import fill_data
 import init_db
+import pickle
 from init_db import BlockedIpData, engine
 from ip_selector import full_geo_cache, select_ip
 from geodata_loader import load_some_geodata
