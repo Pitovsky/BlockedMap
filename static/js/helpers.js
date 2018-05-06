@@ -12,7 +12,7 @@ $(':checkbox').change(function(){
 });
 
 $(function() {
-    var start = moment().subtract(10, 'years');
+    var start = moment('2012-01-01');
     var end = moment();
 
     function cb(start, end) {
