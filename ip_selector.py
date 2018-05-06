@@ -24,7 +24,7 @@ class Org(Enum):
 def where_clause(orgs, ts_low, ts_high, blocked):
 	#TODO: parameterize with ?
 	time_field = "include_time" if blocked else "exclude_time"
-	query = ' where {2} is not null and {2} > \'{0}\' and {2} < \'{1}\''.format(ts_low, ts_high, time_field)
+	query = ' where {2} is not null and {2} >= \'{0}\' and {2} <= \'{1}\''.format(ts_low, ts_high, time_field)
 	if len(orgs) > 0:
 		query += ' and org in (\'' + str('\', \''.join([org.value for org in orgs])) + '\')'
 	return query + ' group by latitude, longitude'
