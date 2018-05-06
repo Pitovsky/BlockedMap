@@ -7,7 +7,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 import ipaddress
 import pickle
-from init_db import engine, BASEDIR
+from init_db import engine, BASEDIR, get_bin_ip, get_bin_prefix
 
 
 full_geo_cache = os.path.join(BASEDIR, 'full_geo_cache.pickle')
@@ -89,7 +89,7 @@ def select_ip(orgs=[], ts_low=datetime.min, ts_high=datetime.max, use_cache=True
 	query += where_clause(orgs, ts_low, ts_high, False)
 	query += ' order by time, type desc'
 	# print(query)
-	data = engine.execute(query)
+	data = engine.execute(query).fetchall()
 	return data
 
 
