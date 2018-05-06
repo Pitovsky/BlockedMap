@@ -14,19 +14,35 @@ from geodata_loader import load_some_geodata
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import update
 
+
 logger = logging.getLogger(__name__)
 Session = sessionmaker(bind=engine)
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
+# only errors here
 fh = logging.FileHandler(os.path.join(BASEDIR, 'errors.log'))
-fh.setLevel(logging.DEBUG)
+fh.setLevel(logging.ERROR)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                                datefmt='%Y-%m-%d %H:%M:%S')
+# everything is written here
+fh_all = logging.FileHandler(os.path.join(BASEDIR, 'update.log'))
+fh_all.setLevel(logging.CRITICAL)
+fh_all.setFormatter(formatter)
+# piping everything to console
+ch = logging.StreamHandler()
+ch.setLevel(logging.CRITICAL)
+ch.setFormatter(formatter)
+# add the handlers to the logger
 logger.addHandler(fh)
+logger.addHandler(fh_all)
+logger.addHandler(ch)
+
 
 def get_changes(repo_path, squash=False):
     repo = git.Repo(repo_path)
     repo.remotes.origin.fetch()
     fetched = list(repo.iter_commits('HEAD..origin'))
-    print('{0} commits are fetched!'.format(len(fetched)))
-    print('Head is now at {0}.'.format(repo.heads.master.commit))
+    logger.critical('{0} commits are fetched!'.format(len(fetched)))
+    logger.critical('Head is now at {0}.'.format(repo.heads.master.commit))
     fetched.reverse()
     squashed_commits = []
     parent = repo.heads.master.commit
@@ -40,7 +56,7 @@ def get_changes(repo_path, squash=False):
             squashed_commits.append((parent, commit))
             parent = commit
     if squash:
-        print('Squashed: {0} diffs are compared!'.format(len(squashed_commits)))
+        logger.critical('Squashed: {0} diffs are compared!'.format(len(squashed_commits)))
     d = difflib.Differ()
     for prev, commit in squashed_commits:
         try:
@@ -65,7 +81,7 @@ def get_changes(repo_path, squash=False):
         yield commit, added, removed
     repo.heads.master.set_commit(parent)
     repo.heads.master.checkout(force=True)
-    print('Head is now at {0}, {1} commits behind origin.'.format(repo.heads.master.commit, len(list(repo.iter_commits('HEAD..origin')))))
+    logger.critical('Head is now at {0}, {1} commits behind origin.'.format(repo.heads.master.commit, len(list(repo.iter_commits('HEAD..origin')))))
 
 
 def update(repo, session): 
@@ -90,7 +106,7 @@ def update(repo, session):
                 logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, added_diff, e))
         added_ip_clean = added_ip - removed_ip
         removed_ip_clean = removed_ip - added_ip
-        print(commit, date, len(added_ip), len(removed_ip), len(added_ip_clean), len(removed_ip_clean))
+        logger.critical('{} {} {} {} {} {}'.format(commit, date, len(added_ip), len(removed_ip), len(added_ip_clean), len(removed_ip_clean)))
         assert(len(added_ip) - len(added_ip_clean) == len(removed_ip) - len(removed_ip_clean))
         for added in map(dict, added_ip_clean):
             added['include_time'] = date
