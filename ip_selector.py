@@ -11,6 +11,8 @@ from init_db import engine, BASEDIR, get_bin_ip, get_bin_prefix
 
 
 full_geo_cache = os.path.join(BASEDIR, 'full_geo_cache.pickle')
+min_date = datetime.strptime('Jan 1 2012', '%b %d %Y').date()
+max_date = datetime.today().date()
 
 
 class Org(Enum):
@@ -65,11 +67,15 @@ def filter_ip(ip_dict, subnet_dict):
 	return top_level_ip
 
 
-def select_ip(orgs=[], ts_low=datetime.min, ts_high=datetime.max, use_cache=True):
+def select_ip(orgs=[], ts_low=min_date, ts_high=max_date, use_cache=True):
 	# sorry about that..
-	if use_cache and len(orgs) in (0, len(Org)) and ts_low == datetime.min and ts_high == datetime.max and os.path.isfile(full_geo_cache):
+	if use_cache and len(orgs) in (0, len(Org)) and ts_low == min_date and ts_high == max_date and os.path.isfile(full_geo_cache):
 		with open(full_geo_cache, 'rb') as cache:
-			return pickle.load(cache)
+			try:
+				data = pickle.load(cache)
+				return data
+			except:
+				pass
 	query = 'select latitude, longitude, sum(2 << (31 - length(prefix))), 1 as type, max(include_time) as time from blocked_ip'
 	query += ' join geo_prefix on (prefix between (ip_bin || \'0\') and (ip_bin || \'1\')) or (prefix = ip_bin)'
 	query += ' join block_geo on (block_geo.id = geo_id)'
