@@ -66,7 +66,7 @@ def filter_ip(ip_dict, subnet_dict):
 	return top_level_ip
 
 
-def select_ip(orgs=[], ts_low=min_date, ts_high=max_date, use_cache=True):
+def select_ip(orgs=[org.value for org in Org], ts_low=min_date, ts_high=max_date, use_cache=True):
 	# sorry about that..
 	if use_cache and len(orgs) == len(Org) and ts_low == min_date and ts_high == max_date and os.path.isfile(full_geo_cache):
 		with open(full_geo_cache, 'rb') as cache:
