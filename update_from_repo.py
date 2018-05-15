@@ -19,6 +19,7 @@ from sqlalchemy import update
 
 Session = sessionmaker(bind=engine)
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
+repo_path = os.path.join(BASEDIR, '../z-i/')
 
 logger = logging.getLogger('errors')
 logger_info = logging.getLogger(__name__)
@@ -167,6 +168,10 @@ def update(repo, session):
             logger.error('Commit failed: {0}\t{1}'.format(commit, date))
 
 
+def get_repo_state():
+    return git.Repo(repo_path).heads.master.commit
+
+
 def make_cache():
     with open(full_geo_cache, 'wb') as cache:
         pickle.dump(select_ip(use_cache=False), cache)
@@ -174,6 +179,6 @@ def make_cache():
 
 if __name__ == '__main__':
     session = Session()
-    update(os.path.join(BASEDIR, '../z-i/'), session)
+    update(repo_path, session)
     make_cache()
     
