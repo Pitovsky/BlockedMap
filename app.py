@@ -21,11 +21,15 @@ gps = []
 @app.route('/', methods=['GET'])
 def draw_map():
     commit = get_repo_state()
-    print(commit.committed_date)
-    print(commit.hexsha)
-    link = 'https://github.com/zapret-info/z-i/commit/' + commit.hexsha
-    print(link)
-    return render_template('index.html', app_id=app.app_id, app_code=app.app_code)
+    commit_time = datetime.fromtimestamp(commit.committed_date).strftime("%d %B %Y, %H:%M (UTC)")
+    commit_sha = commit.hexsha
+    link = 'https://github.com/zapret-info/z-i/commit/' + commit_sha
+    return render_template('index.html',
+                           app_id=app.app_id,
+                           app_code=app.app_code,
+                           last_updated_time=commit_time,
+                           last_updated_sha=commit_sha,
+                           last_updated_link=link)
 
 @app.route('/filter',  methods=['POST'])
 def make_info():
