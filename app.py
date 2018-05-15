@@ -8,6 +8,7 @@ import json
 import locale
 
 from ip_selector import Org, select_ip
+from update_from_repo import get_repo_state
 
 locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
 
@@ -19,6 +20,11 @@ gps = []
 
 @app.route('/', methods=['GET'])
 def draw_map():
+    commit = get_repo_state()
+    print(commit.committed_date)
+    print(commit.hexsha)
+    link = 'https://github.com/zapret-info/z-i/commit/' + commit.hexsha
+    print(link)
     return render_template('index.html', app_id=app.app_id, app_code=app.app_code)
 
 @app.route('/filter',  methods=['POST'])
