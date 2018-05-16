@@ -30,7 +30,7 @@
               <h5 class="container">Воспользуйтесь меню справа для фильтрации по ведомствам и дате внесения в реестр</h5>
           </div>
         </div>
-        <div class="row" style="margin-top: 30px">
+        <div class="row" style="margin-top: 30px text-align: center">
           <div class="col-md-9">
               <div id="map-container" class="map"></div>
           </div>
@@ -93,6 +93,10 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <div class="row text-center" style="margin-top: 20px margin-bottom: 20px">
+              <span>Последнее обновление: {{last_updated_time}} [коммит <a href="{{last_updated_link}}">{{last_updated_sha}}</a>]</span>
         </div>
         <!--div class="row text-center" style="margin-top: 10px">
           <div class="col-md-3">
