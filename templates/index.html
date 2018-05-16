@@ -40,48 +40,18 @@
               <div class="card-body">
                <form action="/filter" method="post" target="dummyframe" id="submitform">
                   <fieldset class="form-group">
-                      <div class="custom-control custom-checkbox">
-                      <input type="checkbox" class="custom-control-input" id="select_all">
-                          <label class="custom-control-label" for="select_all"><u>Выбрать все</u></label>
-                      </div>
-                      <div class="custom-control custom-checkbox">
-                          <input type="checkbox" class="custom-control-input" id="FNS" name="FNS">
-                          <label class="custom-control-label" for="FNS">ФНС</label>
-                      </div>
-                      <div class="custom-control custom-checkbox">
-                          <input type="checkbox" class="custom-control-input" id="COURT" name="COURT">
-                          <label class="custom-control-label" for="COURT">Суд</label><br>
-                      </div>
-                      <div class="custom-control custom-checkbox">
-                          <input type="checkbox" class="custom-control-input" id="GP" name="GP">
-                          <label class="custom-control-label" for="GP">Генпрокуратура</label>
-                      </div>
-                      <div class="custom-control custom-checkbox">
-                          <input type="checkbox" class="custom-control-input" id="RKN" name="RKN">
-                          <label class="custom-control-label" for="RKN">Роскомнадзор</label>
-                      </div>
-                      <div class="custom-control custom-checkbox">
-                          <input type="checkbox" class="custom-control-input" id="MVD" name="MVD">
-                          <label class="custom-control-label" for="MVD">МВД</label>
-                      </div>
-                      <div class="custom-control custom-checkbox">
-                          <input type="checkbox" class="custom-control-input" id="FSKN" name="FSKN">
-                          <label class="custom-control-label" for="FSKN">ФСКН</label>
-                      </div>
-                      <div class="custom-control custom-checkbox">
-                          <input type="checkbox" class="custom-control-input" id="MGCOURT" name="MGCOURT">
-                          <label class="custom-control-label" for="MGCOURT">Мосгорсуд</label>
-                      </div>
-                      <div class="custom-control custom-checkbox">
-                          <input type="checkbox" class="custom-control-input" id="RPN" name="RPN">
-                          <label class="custom-control-label" for="RPN">Роспотребнадзор</label>
-                      </div>
-                      <div class="custom-control custom-checkbox">
-                          <input type="checkbox" class="custom-control-input" id="MKS" name="MKS">
-                          <label class="custom-control-label" for="MKS">Минкомсвязь</label>
-                      </div>
+                    <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="select_all" checked><u>Выбрать все</u> </label></div>
+                    <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="FNS" name="FNS" checked><u>ФНС</u> </label></div>
+                    <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="COURT" name="COURT" checked><u>Суд</u> </label></div>
+                    <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="GP" name="GP" checked><u>Генпрокуратура</u> </label></div>
+                    <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="RKN" name="RKN" checked><u>Роскомнадзор</u> </label></div>
+                    <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="MVD" name="MVD" checked><u>МВД</u> </label></div>
+                    <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="FSKN" name="FSKN" checked><u>ФСКН</u> </label></div>
+                    <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="MGCOURT" name="MGCOURT" checked><u>Мосгорсуд</u> </label></div>
+                    <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="RPN" name="RPN" checked><u>Роспотребнадзор</u> </label></div>
+                    <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="MKS" name="MKS" checked><u>Минкомсвязь</u> </label></div>
                   </fieldset>
-                    <div id="reportrange" name="reportrange" class="input-group mb-3"" style="background: #fff; cursor: pointer; padding: 2px 2px; width: 100%">
+                    <div id="reportrange" name="reportrange" class="input-group mb-3" style="background: #fff; cursor: pointer; padding: 2px 2px; width: 100%">
                         <div class="input-group">
                             <span class="input-group-addon" id="calendar"><span class="glyphicon glyphicon-calendar fa fa-calendar"><b class="caret"></b></span></span>
                         </div>
@@ -98,6 +68,8 @@
         <div class="row text-center" style="margin-top: 20px margin-bottom: 20px">
               <span>Последнее обновление: {{last_updated_time}} [коммит <a href="{{last_updated_link}}">{{last_updated_sha}}</a>]</span>
         </div>
+
+
         <!--div class="row text-center" style="margin-top: 10px">
           <div class="col-md-3">
           </div>
