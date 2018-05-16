@@ -16,12 +16,12 @@ $(function() {
     var end = moment();
 
     function cb(start, end) {
-        $('#reportrange input').val(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+        $('#reportrange input').val(start.format('DD.MM.YYYY') + ' - ' + end.format('DD.MM.YYYY'));
     }
 
     $('#reportrange').daterangepicker({
         "locale": {
-          "format": "MM/DD/YYYY",
+          "format": "DD.MM.YYYY",
           "separator": " - ",
           "applyLabel": "Применить",
           "cancelLabel": "Отмена",

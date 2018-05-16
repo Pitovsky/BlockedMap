@@ -40,8 +40,8 @@ def make_info():
     for key in data:
         if key == "range":
             tss = data[key].split(" - ")
-            ts_low = datetime.strptime(tss[0], "%B %d, %Y").date()
-            ts_high = datetime.strptime(tss[1], "%B %d, %Y").date()
+            ts_low = datetime.strptime(tss[0], "%d.%m.%Y").date()
+            ts_high = datetime.strptime(tss[1], "%d.%m.%Y").date()
         else:
             orgs.append(getattr(Org, key))
     gps = [{'lat': p[0] if p[0] else 0, 
