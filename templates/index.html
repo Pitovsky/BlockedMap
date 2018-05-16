@@ -22,20 +22,31 @@
         <link rel="stylesheet" href={{ url_for("static", filename="css/bootstrap.min.css") }}>
     </head>
     <body>
+      <section id="section-featured" class="featured">
+        <div class="container">
+          <div class="row mar-bot20">
+            <div class="col-md-8 col-md-offset-2">
+              <div class="align-center">
+                <h2 align="center" style="padding-left:10px;color:#000">Карта блокировки датацентров</h2>
+                <h4 align="center" style="padding-left:10px;color:#000">Где не стоит разворачивать свой сервис? Что новенького в реестре? Где находятся сервера, которые не любит ФСКН?</h4>
+                <h5 align="center" style="padding-left:10px;color:#000">Радиус круга соотносится с количеством заблокированных IP-адресов на этой локации</h5>
+                <h5 align="center" style="padding-left:10px;color:#000">Воспользуйтесь меню справа для фильтрации по ведомствам и дате внесения в реестр</h5>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
         <div class="row" style="margin-top: 10px; text-align: center;">
-          <div class="col-md-9">
-              <h2 class="container">Карта блокировки датацентров</h2>
-              <h4>Где не стоит разворачивать свой сервис? Что новенького в реестре? Где находятся сервера, которые не любит ФСКН?</h4>
-              <h5 class="container">Радиус круга соотносится с количеством заблокированных IP-адресов на этой локации</h5>
-              <h5 class="container">Воспользуйтесь меню справа для фильтрации по ведомствам и дате внесения в реестр</h5>
+          <div class="col-sm-12">
+              
           </div>
         </div>
         <div class="row" style="margin-top: 30px text-align: center">
-          <div class="col-md-9">
+          <div class="col-sm-12">
               <div id="map-container" class="map"></div>
           </div>
 
-          <div class="col-md-2">
+          <div class="col-sm-12">
             <div class="card" style="width: 25rem;">
               <div class="card-body">
                <form action="/filter" method="post" target="dummyframe" id="submitform">
@@ -65,8 +76,12 @@
           </div>
         </div>
 
-        <div class="row text-center" style="margin-top: 20px margin-bottom: 20px">
-              <span>Последнее обновление: {{last_updated_time}} [коммит <a href="{{last_updated_link}}">{{last_updated_sha}}</a>]</span>
+        <div class="row text-left" style="margin-top: 20px margin-bottom: 20px">
+          <span>При поддержке <a href="https://roskomsvoboda.org/">Роскомсвободы</a></span>
+        </div>
+
+        <div class="row text-left" style="margin-top: 20px margin-bottom: 20px">
+          <span>Последнее обновление: {{last_updated_time}} [коммит <a href="{{last_updated_link}}">{{last_updated_sha}}</a>]</span>
         </div>
 
 
