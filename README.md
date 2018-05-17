@@ -28,9 +28,9 @@ python geodata_loader.py
 
 1. Clone the whole [Zapret-Info repo](https://github.com/zapret-info/z-i) (default: to ```../z-i/```).
 
-Inside the Zapret-Info directory, checkout it to the first revision:
+Inside the Zapret-Info directory, reset it to the first revision:
 ```bash
-git checkout e784cde5c35ba786b4fa6499e8972c0175beab16
+git reset --hard e784cde5c35ba786b4fa6499e8972c0175beab16
 ```
 
 2. Run:
