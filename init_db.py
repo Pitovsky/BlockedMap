@@ -90,14 +90,16 @@ class GeoPrefix(Base):
 class Stats(Base):
     __tablename__ = 'stats'
 
-    date = Column('date',String, primary_key=True)
+    date = Column('date', String, primary_key=True)
+    org = Column('date', String)
     blocked_number = Column('blocked_number', Integer)
     unlocked_number = Column('unlocked_number', Integer)
 
-    def __init__(self, date, blocked_number, unlocked_number):
+    def __init__(self, date, blocked_number, unlocked_number, org=None):
         self.date = date
         self.blocked_number = blocked_number
         self.unlocked_number = unlocked_number
+        self.org = org
 
 
 def init():

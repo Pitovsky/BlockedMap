@@ -8,14 +8,15 @@ import logging
 import os
 from tqdm import tqdm
 from csv_parser import fill_data
+from collections import defaultdict
 import init_db
 import pickle
-from init_db import BlockedIpData, engine
+from init_db import BlockedIpData, Stats, engine, get_bin_prefix
 from ip_selector import full_geo_cache, select_ip
 from geodata_loader import load_some_geodata
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import update
-
+from ipaddress import ip_network, ip_address  
 
 Session = sessionmaker(bind=engine)
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
@@ -40,6 +41,17 @@ ch.setFormatter(formatter)
 logger.addHandler(fh)
 logger_info.addHandler(fh_all)
 logger_info.addHandler(ch)
+
+
+def count_network_ips(subnet):
+    prefix = get_bin_prefix(ip_network(addresses[block_id]))
+    return 2 << (31 - len(prefix))
+
+
+class DayStats:
+    def __init__(self):
+        self.blocked = defaultdict(int)
+        self.unlocked = defaultdict(int)
 
 
 def get_changes(repo_path, squash=False):
@@ -95,6 +107,7 @@ def update(repo, session):
     for commit, added, removed in tqdm(get_changes(repo, True)):
         date = datetime.datetime.fromtimestamp(commit.committed_date).strftime('%Y-%m-%d')
         removed_ip, added_ip = set(), set()
+        
         for removed_diff in removed:
             try:
                 if removed_diff.startswith('-Updated: '):
@@ -104,6 +117,7 @@ def update(repo, session):
             except:
                 everything_alright = False
                 logger.error('{0}\t{1}\t{2}'.format(commit, date, removed_diff))
+        
         for added_diff in added:
             try:
                 if added_diff.startswith('+Updated: '):
@@ -117,16 +131,24 @@ def update(repo, session):
         removed_ip_clean = removed_ip - added_ip
         logger_info.info('{} {} {} {} {} {}'.format(commit, date, len(added_ip), len(removed_ip), len(added_ip_clean), len(removed_ip_clean)))
         assert(len(added_ip) - len(added_ip_clean) == len(removed_ip) - len(removed_ip_clean))
+        
+        stats = DayStats()
+
         for added in map(dict, added_ip_clean):
             added['include_time'] = date
             added['exclude_time'] = None
             try:
                 if added['ip']:
+                    if added['org']:
+                        stats.blocked[added['org']] += 1
+                    
                     obj = session.query(BlockedIpData).filter_by(ip=added['ip'], 
                         org=added['org'], decision_date=added['decision_date']) 
                 elif added['ip_subnet']:
+                    if added['org']:
+                        stats.blocked[added['org']] += count_network_ips(added['ip_subnet'])
                     obj = session.query(BlockedIpData).filter_by(ip_subnet=added['ip_subnet'], 
-                        org=added['org'], decision_date=added['decision_date'])
+                                org=added['org'], decision_date=added['decision_date'])
                 else:
                     raise Exception("Bad ip data: " + str(added))
                 if obj.first():
@@ -144,12 +166,17 @@ def update(repo, session):
             except Exception as e:
                 everything_alright = False
                 logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, added, e))
+        
         for removed in map(dict, removed_ip_clean):
             try:
                 if removed['ip']:
+                    if removed['org']:
+                        stats.unlocked[added['org']] += 1
                     obj = session.query(BlockedIpData).filter_by(ip=removed['ip'], 
                         org=removed['org'], decision_date=removed['decision_date']) 
                 elif removed['ip_subnet']:
+                    if removed['org']:
+                        stats.unlocked[added['org']] += count_network_ips(removed['ip_subnet'])
                     obj = session.query(BlockedIpData).filter_by(ip_subnet=removed['ip_subnet'], 
                         org=removed['org'], decision_date=removed['decision_date'])
                 else:
@@ -161,6 +188,10 @@ def update(repo, session):
             except Exception as e:
                 everything_alright = False
                 logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, removed, e))
+        
+        for org in set(stats.blocked.keys()) + set(stats.unlocked.keys()):
+            session.add(Stats(date, stats.blocked[org], stats.unlocked[org], org))
+        
         try:
             session.commit()
         except Exception as e:
