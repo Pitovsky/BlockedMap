@@ -131,11 +131,11 @@ def gen_clean_ips(repo):
         removed_ip_clean = removed_ip - added_ip
         logger_info.info('{} {} {} {} {} {}'.format(commit, date, len(added_ip), len(removed_ip), len(added_ip_clean), len(removed_ip_clean)))
         assert(len(added_ip) - len(added_ip_clean) == len(removed_ip) - len(removed_ip_clean))
-        yield date, map(dict, added_ip_clean), map(dict, removed_ip_clean) 
+        yield date, commit, map(dict, added_ip_clean), map(dict, removed_ip_clean) 
 
 
-def update_geodata(session, added_ips, removed_ips):
-    for added in added_ip_clean:
+def update_geodata(session, added_ips, removed_ips, date, commit):
+    for added in added_ips:
         added['include_time'] = date
         added['exclude_time'] = None
         try:
@@ -163,7 +163,7 @@ def update_geodata(session, added_ips, removed_ips):
             everything_alright = False
             logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, added, e))
     
-    for removed in removed_ip_clean:
+    for removed in removed_ips:
         try:
             if removed['ip']:
                 obj = session.query(BlockedIpData).filter_by(ip=removed['ip'], 
@@ -182,9 +182,9 @@ def update_geodata(session, added_ips, removed_ips):
             logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, removed, e))
 
 
-def update_stats(session, added_ips, removed_ips):
+def update_stats(session, added_ips, removed_ips, date, commit):
     stats = DayStats()
-    for added in added_ip_clean:
+    for added in added_ips:
         try:
             if added['ip']:
                 if added['org']:
@@ -198,7 +198,7 @@ def update_stats(session, added_ips, removed_ips):
             everything_alright = False
             logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, added, e))
     
-    for removed in removed_ip_clean:
+    for removed in removed_ips:
         try:
             if removed['ip']:
                 if removed['org']:
@@ -212,14 +212,14 @@ def update_stats(session, added_ips, removed_ips):
             everything_alright = False
             logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, removed, e))
     
-    for org in set(stats.blocked.keys()) + set(stats.unlocked.keys()):
+    for org in set(stats.blocked.keys()) | set(stats.unlocked.keys()):
         session.add(Stats(date, stats.blocked[org], stats.unlocked[org], org))
         
 
 def update(repo, session): 
-    for date, added_ip_clean, removed_ip_clean in gen_clean_ips(repo):
-        update_geodata(session, added_ip_clean, removed_ip_clean)
-        #update_stats(session, added_ip_clean, removed_ip_clean)
+    for date, commit, added_ip_clean, removed_ip_clean in gen_clean_ips(repo):
+        #update_geodata(session, added_ip_clean, removed_ip_clean, date, commit)
+        update_stats(session, added_ip_clean, removed_ip_clean, date, commit)
         
         try:
             session.commit()
