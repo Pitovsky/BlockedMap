@@ -22,103 +22,110 @@
         <link rel="stylesheet" href={{ url_for("static", filename="css/bootstrap.min.css") }}>
     </head>
     <body>
-        <div class="row" style="margin-top: 10px; text-align: center;">
-          <div class="col-md-9">
-              <h2 class="container">Карта блокировки датацентров</h2>
-              <h4>Где не стоит разворачивать свой сервис? Что новенького в реестре? Где находятся сервера, которые не любит ФСКН?</h4>
-              <h5 class="container">Радиус круга соотносится с количеством заблокированных IP-адресов на этой локации</h5>
-              <h5 class="container">Воспользуйтесь меню справа для фильтрации по ведомствам и дате внесения в реестр</h5>
-          </div>
-        </div>
-        <div class="row" style="margin-top: 30px text-align: center">
-          <div class="col-md-9">
-              <div id="map-container" class="map"></div>
-          </div>
-
-          <div class="col-md-2">
-            <div class="card" style="width: 25rem;">
-              <div class="card-body">
-               <form action="/filter" method="post" target="dummyframe" id="submitform">
-                  <fieldset class="form-group">
-                      <div class="custom-control custom-checkbox">
-                      <input type="checkbox" class="custom-control-input" id="select_all">
-                          <label class="custom-control-label" for="select_all"><u>Выбрать все</u></label>
-                      </div>
-                      <div class="custom-control custom-checkbox">
-                          <input type="checkbox" class="custom-control-input" id="FNS" name="FNS">
-                          <label class="custom-control-label" for="FNS">ФНС</label>
-                      </div>
-                      <div class="custom-control custom-checkbox">
-                          <input type="checkbox" class="custom-control-input" id="COURT" name="COURT">
-                          <label class="custom-control-label" for="COURT">Суд</label><br>
-                      </div>
-                      <div class="custom-control custom-checkbox">
-                          <input type="checkbox" class="custom-control-input" id="GP" name="GP">
-                          <label class="custom-control-label" for="GP">Генпрокуратура</label>
-                      </div>
-                      <div class="custom-control custom-checkbox">
-                          <input type="checkbox" class="custom-control-input" id="RKN" name="RKN">
-                          <label class="custom-control-label" for="RKN">Роскомнадзор</label>
-                      </div>
-                      <div class="custom-control custom-checkbox">
-                          <input type="checkbox" class="custom-control-input" id="MVD" name="MVD">
-                          <label class="custom-control-label" for="MVD">МВД</label>
-                      </div>
-                      <div class="custom-control custom-checkbox">
-                          <input type="checkbox" class="custom-control-input" id="FSKN" name="FSKN">
-                          <label class="custom-control-label" for="FSKN">ФСКН</label>
-                      </div>
-                      <div class="custom-control custom-checkbox">
-                          <input type="checkbox" class="custom-control-input" id="MGCOURT" name="MGCOURT">
-                          <label class="custom-control-label" for="MGCOURT">Мосгорсуд</label>
-                      </div>
-                      <div class="custom-control custom-checkbox">
-                          <input type="checkbox" class="custom-control-input" id="RPN" name="RPN">
-                          <label class="custom-control-label" for="RPN">Роспотребнадзор</label>
-                      </div>
-                      <div class="custom-control custom-checkbox">
-                          <input type="checkbox" class="custom-control-input" id="MKS" name="MKS">
-                          <label class="custom-control-label" for="MKS">Минкомсвязь</label>
-                      </div>
-                  </fieldset>
-                    <div id="reportrange" name="reportrange" class="input-group mb-3"" style="background: #fff; cursor: pointer; padding: 2px 2px; width: 100%">
-                        <div class="input-group">
-                            <span class="input-group-addon" id="calendar"><span class="glyphicon glyphicon-calendar fa fa-calendar"><b class="caret"></b></span></span>
-                        </div>
-                        <input name="range" type="text" class="form-control"></input>
-                    </div>
-                    <br>
-                  <input type="submit" class="btn btn-info" id="submit_orgs" value="Фильтровать">
-                </form>
+      <section>
+        <div class="container">
+          <div class="row mar-bot20">
+            <div class="col-md-8 col-md-offset-2">
+              <div class="align-center">
+                <h2 align="center" style="padding-left:10px;color:#000">Карта блокировки датацентров</h2>
+                <h4 align="center" style="padding-left:10px;color:#000">Где не стоит разворачивать свой сервис? Что новенького в реестре? Где находятся сервера, которые не любит ФСКН?</h4>
+                <h5 align="center" style="padding-left:10px;color:#000">Радиус круга соотносится с количеством заблокированных IP-адресов на этой локации</h5>
+                <h5 align="center" style="padding-left:10px;color:#000">Воспользуйтесь меню справа для фильтрации по ведомствам и дате внесения в реестр</h5>
               </div>
             </div>
           </div>
         </div>
+      </section>
 
-        <div class="row text-center" style="margin-top: 20px margin-bottom: 20px">
-              <span>Последнее обновление: {{last_updated_time}} [коммит <a href="{{last_updated_link}}">{{last_updated_sha}}</a>]</span>
+      <section>
+        <div class="container" align="center">
+          <div class="row mar-bot40">
+            <div class="align-center" style="margin-top: 30px; margin-bottom:25px;">
+              <div class="row">
+                <div class="col-sm-12 col-md-9 col-lg-9">
+                  <div id="map-container" class="map"></div>
+                </div>
+                <div class="col-sm-12 col-md-3 col-lg-3" style="margin-top: 5vh; margin-left: 5vw; text-align:left; display:flex; flex-direction:column">
+                  <form action="/filter" method="post" target="dummyframe" id="submitform">
+                    <fieldset class="form-group">
+                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="select_all" checked><u>Выбрать все</u> </label></div>
+                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="FNS" name="FNS" checked><u>ФНС</u> </label></div>
+                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="COURT" name="COURT" checked><u>Суд</u> </label></div>
+                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="GP" name="GP" checked><u>Генпрокуратура</u> </label></div>
+                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="RKN" name="RKN" checked><u>Роскомнадзор</u> </label></div>
+                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="MVD" name="MVD" checked><u>МВД</u> </label></div>
+                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="FSKN" name="FSKN" checked><u>ФСКН</u> </label></div>
+                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="MGCOURT" name="MGCOURT" checked><u>Мосгорсуд</u> </label></div>
+                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="RPN" name="RPN" checked><u>Роспотребнадзор</u> </label></div>
+                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="MKS" name="MKS" checked><u>Минкомсвязь</u> </label></div>
+                    </fieldset>
+                    <div id="reportrange" name="reportrange" class="input-group mb-3" style="background: #fff; cursor: pointer; padding: 2px 2px;">
+                      <div class="input-group">
+                        <span class="input-group-addon" id="calendar"><span class="glyphicon glyphicon-calendar fa fa-calendar"><b class="caret"></b></span></span>
+                      </div>
+                      <input name="range" type="text" class="form-control"></input>
+                    </div>
+                    <br>
+                    <input type="submit" class="btn btn-info" id="submit_orgs" value="Фильтровать">
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <!--div class="row text-center" style="margin-top: 10px">
-          <div class="col-md-3">
+      </section>
+     <!--    <div class="row" style="margin-top: 10px; text-align: center;">
+          <div class="col-sm-12">
+              
           </div>
-          <div class="col-md-3 center-block">
-            <a class="container" href="https://github.com/Pitovsky/BlockedMap"><img class="thumbnail" src="{{ url_for("static", filename="img/github-logo.png") }}" style="max-height: 40px;"/></a>
+        </div>
+        <div class="row" style="margin-top: 30px text-align: center">
+          <div class="col-sm-12">
+              <div id="map-container" class="map"></div>
           </div>
-        </div-->
 
+          <div class="col-sm-12">
+            <div class="card" style="width: 25rem;">
+              <div class="card-body">
+               
+              </div>
+            </div>
+          </div>
+        </div> -->
 
-        <script type="text/javascript">
-            var platform = new H.service.Platform({
-              app_id: "{{ app_id }}",
-              app_code: "{{ app_code }}",
-            });
+      <section>
+        <div class="container" align="center">
+          <div class="row mar-bot40">
+            <div class="align-center">
+              <div class="row">
+                <div class="col-sm-12 col-md-3 col-lg-3" style="margin-top: 5vh; margin-left: 5vw; text-align:left; display:flex; flex-direction:column">
+                  <span style="margin:5px">При поддержке <a href="https://roskomsvoboda.org/">Роскомсвободы</a>, данные берутся из репозитория <a href="https://github.com/zapret-info/z-i/">zapret-info</a>.</span>
+                  <span style="margin:5px">Последнее обновление: {{last_updated_time}} [<a style="margin: 4px !important;" href="{{last_updated_link}}">{{last_updated_sha}}</a>]</span>
+                </div>
+                <div class="row text-center" style="margin: 20px">
+                  <span>
+                    <a href="https://github.com/Pitovsky/BlockedMap">
+                    <img src="{{ url_for("static", filename="img/GitHub-Mark-64px.png") }}" style="max-height: 1em; margin: 5px"/>Blocked.here</a>, 2018
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-            var iconUrl = "{{ url_for("static", filename="img/scull.png") }}";
-        </script>
-  
-        <script src={{ url_for("static", filename="js/circles.js") }}></script>
-        <script src={{ url_for("static", filename="js/helpers.js") }}></script>
-        <script src={{ url_for("static", filename="js/bootstrap.min.js") }}></script>
+      <script type="text/javascript">
+        var platform = new H.service.Platform({
+          app_id: "{{ app_id }}",
+          app_code: "{{ app_code }}",
+        });
+
+        var iconUrl = "{{ url_for("static", filename="img/scull.png") }}";
+      </script>
+
+      <script src={{ url_for("static", filename="js/circles.js") }}></script>
+      <script src={{ url_for("static", filename="js/helpers.js") }}></script>
+      <script src={{ url_for("static", filename="js/bootstrap.min.js") }}></script>
 
     </body>
 </html>
