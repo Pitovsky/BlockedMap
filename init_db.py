@@ -87,10 +87,24 @@ class GeoPrefix(Base):
         self.prefix = prefix
 
 
+class Stats(Base):
+    __tablename__ = 'stats'
+
+    date = Column('date',String, primary_key=True)
+    blocked_number = Column('blocked_number', Integer)
+    unlocked_number = Column('unlocked_number', Integer)
+
+    def __init__(self, date, blocked_number, unlocked_number):
+        self.date = date
+        self.blocked_number = blocked_number
+        self.unlocked_number = unlocked_number
+
+
 def init():
     BlockedIpData.__table__.drop(engine, checkfirst=True)
     BlockGeoData.__table__.drop(engine, checkfirst=True)
     GeoPrefix.__table__.drop(engine, checkfirst=True)
+    Stats.__table__.drop(engine, checkfirst=True)
     Base.metadata.create_all(engine)
 
 
