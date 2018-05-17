@@ -45,7 +45,8 @@
                 <div class="col-sm-12 col-md-9 col-lg-9">
                   <div id="map-container" class="map"></div>
                 </div>
-                <div class="col-sm-12 col-md-3 col-lg-3" style="margin-top: 5vh; margin-left: 5vw; text-align:left; display:flex; flex-direction:column">
+                <div class="checkboxes">
+                <div class="col-sm-12 col-md-2 col-lg-2 align-left" style="margin-top: 5vh; text-align:left; display:flex; flex-direction:column">
                   <form action="/filter" method="post" target="dummyframe" id="submitform">
                     <fieldset class="form-group">
                       <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="select_all" checked><u>Выбрать все</u> </label></div>
@@ -69,6 +70,7 @@
                     <input type="submit" class="btn btn-info" id="submit_orgs" value="Фильтровать">
                   </form>
                 </div>
+              </div>
               </div>
             </div>
           </div>
@@ -98,9 +100,9 @@
           <div class="row mar-bot40">
             <div class="align-center">
               <div class="row">
-                <div class="col-sm-12 col-md-3 col-lg-3" style="margin-top: 5vh; margin-left: 5vw; text-align:left; display:flex; flex-direction:column">
-                  <span style="margin:5px">При поддержке <a href="https://roskomsvoboda.org/">Роскомсвободы</a>, данные берутся из репозитория <a href="https://github.com/zapret-info/z-i/">zapret-info</a>.</span>
-                  <span style="margin:5px">Последнее обновление: {{last_updated_time}} [<a style="margin: 4px !important;" href="{{last_updated_link}}">{{last_updated_sha}}</a>]</span>
+                <div class="col-sm-12 col-md-12 col-lg-12" style="margin-top: 5vh; margin-left: 5vw; text-align:left; display:flex; flex-direction:column">
+                  <span style="margin-top:5px; margin-bottom:5px">При поддержке <a href="https://roskomsvoboda.org/">Роскомсвободы</a>, данные берутся из репозитория <a href="https://github.com/zapret-info/z-i/">zapret-info</a>.</span>
+                  <span style="margin-top:5px; margin-bottom:5px">Последнее обновление: {{last_updated_time}} [<a style="margin: 4px !important;" href="{{last_updated_link}}">{{last_updated_sha}}</a>]</span>
                 </div>
                 <div class="row text-center" style="margin: 20px">
                   <span>
