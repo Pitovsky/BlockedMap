@@ -21,7 +21,7 @@ var map = new H.Map(
 var circles = []
 
 var iconOptions = {
-  size: new H.math.Size(50, 50),
+  size: new H.math.Size(81, 50),
   anchor: new H.math.Point(25, 25)
 };
 
