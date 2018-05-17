@@ -8,6 +8,8 @@ The data is taken from [Zapret-Info repository](https://github.com/zapret-info/z
 * getting it from a particular snapshot of the IP list (faster, but less history is available);
 * cloning the whole repo and iterating through commits (takes time, gives the full history).
 
+<img src="./static/img/map_screen.png">
+
 # Usage (python 3.6 environment)
 
 ```bash
