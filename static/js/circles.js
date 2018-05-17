@@ -1,8 +1,8 @@
 var mapContainer = document.getElementById('map-container');
 
 var RknCoordinates = {
-  lat: 55.7558,
-  lng: 37.6173
+  lat: 55.75155,
+  lng: 37.6365
 };
 
 var mapOptions = {
@@ -83,6 +83,7 @@ $('#submitform').submit(function(e){
       }
 
       circles = []
+console.log(marker.getPosition());
 
       for (var i = 0; i < points.length; ++i) {
         var circle = new H.map.Circle(
