@@ -103,7 +103,7 @@ def get_changes(repo_path, squash=False):
         logger_info.info('Head is now at {0}, {1} commits behind origin.'.format(repo.heads.master.commit, len(list(repo.iter_commits('HEAD..origin')))))
 
 
-def update(repo, session): 
+def gen_clean_ips(repo):
     for commit, added, removed in tqdm(get_changes(repo, True)):
         date = datetime.datetime.fromtimestamp(commit.committed_date).strftime('%Y-%m-%d')
         removed_ip, added_ip = set(), set()
@@ -131,66 +131,95 @@ def update(repo, session):
         removed_ip_clean = removed_ip - added_ip
         logger_info.info('{} {} {} {} {} {}'.format(commit, date, len(added_ip), len(removed_ip), len(added_ip_clean), len(removed_ip_clean)))
         assert(len(added_ip) - len(added_ip_clean) == len(removed_ip) - len(removed_ip_clean))
-        
-        stats = DayStats()
+        yield date, map(dict, added_ip_clean), map(dict, removed_ip_clean) 
 
-        for added in map(dict, added_ip_clean):
-            added['include_time'] = date
-            added['exclude_time'] = None
-            try:
-                if added['ip']:
-                    if added['org']:
-                        stats.blocked[added['org']] += 1
-                    
-                    obj = session.query(BlockedIpData).filter_by(ip=added['ip'], 
-                        org=added['org'], decision_date=added['decision_date']) 
-                elif added['ip_subnet']:
-                    if added['org']:
-                        stats.blocked[added['org']] += count_network_ips(added['ip_subnet'])
-                    obj = session.query(BlockedIpData).filter_by(ip_subnet=added['ip_subnet'], 
-                                org=added['org'], decision_date=added['decision_date'])
+
+def update_geodata(session, added_ips, removed_ips):
+    for added in added_ip_clean:
+        added['include_time'] = date
+        added['exclude_time'] = None
+        try:
+            if added['ip']:
+                obj = session.query(BlockedIpData).filter_by(ip=added['ip'], 
+                    org=added['org'], decision_date=added['decision_date']) 
+            elif added['ip_subnet']:
+                obj = session.query(BlockedIpData).filter_by(ip_subnet=added['ip_subnet'], 
+                            org=added['org'], decision_date=added['decision_date'])
+            else:
+                raise Exception("Bad ip data: " + str(added))
+            if obj.first():
+                excluded = obj.filter(BlockedIpData.exclude_time!=None)
+                if excluded.first():
+                    excluded.update({'exclude_time': None})
+            else:
+                blocked_ip = BlockedIpData(added)
+                session.add(blocked_ip)
+                session.flush()
+                if blocked_ip.ip:
+                    load_some_geodata(session, {blocked_ip.id: blocked_ip.ip})
                 else:
-                    raise Exception("Bad ip data: " + str(added))
-                if obj.first():
-                    excluded = obj.filter(BlockedIpData.exclude_time!=None)
-                    if excluded.first():
-                        excluded.update({'exclude_time': None})
-                else:
-                    blocked_ip = BlockedIpData(added)
-                    session.add(blocked_ip)
-                    session.flush()
-                    if blocked_ip.ip:
-                        load_some_geodata(session, {blocked_ip.id: blocked_ip.ip})
-                    else:
-                        load_some_geodata(session, {blocked_ip.id: blocked_ip.ip_subnet}, True)
-            except Exception as e:
-                everything_alright = False
-                logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, added, e))
+                    load_some_geodata(session, {blocked_ip.id: blocked_ip.ip_subnet}, True)
+        except Exception as e:
+            everything_alright = False
+            logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, added, e))
+    
+    for removed in removed_ip_clean:
+        try:
+            if removed['ip']:
+                obj = session.query(BlockedIpData).filter_by(ip=removed['ip'], 
+                    org=removed['org'], decision_date=removed['decision_date']) 
+            elif removed['ip_subnet']:
+                obj = session.query(BlockedIpData).filter_by(ip_subnet=removed['ip_subnet'], 
+                    org=removed['org'], decision_date=removed['decision_date'])
+            else:
+                raise Exception("Bad ip data: " + str(removed))
+            if obj.first():
+                obj.update({'exclude_time': date})
+            else:
+                raise Exception("Bad ip data: " + str(removed))
+        except Exception as e:
+            everything_alright = False
+            logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, removed, e))
+
+
+def update_stats(session, added_ips, removed_ips):
+    stats = DayStats()
+    for added in added_ip_clean:
+        try:
+            if added['ip']:
+                if added['org']:
+                    stats.blocked[added['org']] += 1
+            elif added['ip_subnet']:
+                if added['org']:
+                    stats.blocked[added['org']] += count_network_ips(added['ip_subnet'])
+            else:
+                raise Exception("Bad ip data: " + str(added))
+        except Exception as e:
+            everything_alright = False
+            logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, added, e))
+    
+    for removed in removed_ip_clean:
+        try:
+            if removed['ip']:
+                if removed['org']:
+                    stats.unlocked[added['org']] += 1
+            elif removed['ip_subnet']:
+                if removed['org']:
+                    stats.unlocked[added['org']] += count_network_ips(removed['ip_subnet'])
+            else:
+                raise Exception("Bad ip data: " + str(removed))
+        except Exception as e:
+            everything_alright = False
+            logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, removed, e))
+    
+    for org in set(stats.blocked.keys()) + set(stats.unlocked.keys()):
+        session.add(Stats(date, stats.blocked[org], stats.unlocked[org], org))
         
-        for removed in map(dict, removed_ip_clean):
-            try:
-                if removed['ip']:
-                    if removed['org']:
-                        stats.unlocked[added['org']] += 1
-                    obj = session.query(BlockedIpData).filter_by(ip=removed['ip'], 
-                        org=removed['org'], decision_date=removed['decision_date']) 
-                elif removed['ip_subnet']:
-                    if removed['org']:
-                        stats.unlocked[added['org']] += count_network_ips(removed['ip_subnet'])
-                    obj = session.query(BlockedIpData).filter_by(ip_subnet=removed['ip_subnet'], 
-                        org=removed['org'], decision_date=removed['decision_date'])
-                else:
-                    raise Exception("Bad ip data: " + str(removed))
-                if obj.first():
-                    obj.update({'exclude_time': date})
-                else:
-                    raise Exception("Bad ip data: " + str(removed))
-            except Exception as e:
-                everything_alright = False
-                logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, removed, e))
-        
-        for org in set(stats.blocked.keys()) + set(stats.unlocked.keys()):
-            session.add(Stats(date, stats.blocked[org], stats.unlocked[org], org))
+
+def update(repo, session): 
+    for date, added_ip_clean, removed_ip_clean in gen_clean_ips(repo):
+        update_geodata(session, added_ip_clean, removed_ip_clean)
+        #update_stats(session, added_ip_clean, removed_ip_clean)
         
         try:
             session.commit()

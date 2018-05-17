@@ -91,7 +91,7 @@ class Stats(Base):
     __tablename__ = 'stats'
 
     date = Column('date', String, primary_key=True)
-    org = Column('date', String)
+    org = Column('org', String)
     blocked_number = Column('blocked_number', Integer)
     unlocked_number = Column('unlocked_number', Integer)
 
