@@ -7,7 +7,7 @@ from datetime import datetime
 import json
 import locale
 
-from ip_selector import Org, select_ip
+from ip_selector import Org, select_ip, select_stats
 from update_from_repo import get_repo_state
 
 locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
@@ -49,7 +49,10 @@ def make_info():
         'count': p[2] if p[2] else 0, 
         'fill_color': unlocked_color.format(0.9) if p[3] == 1 else blocked_color.format(0.9)}
         for p in select_ip(orgs, ts_low, ts_high)]
-    return jsonify(gps)
+    stats = [{'name': kind, 'color': color, 'pointStart': start, 'pointInterval': 24 * 3600 * 1000, 'data': stat} for kind, color, start, stat in select_stats(orgs, ts_low, ts_high)]
+
+    data = {'gps': gps, 'stats': stats}
+    return jsonify(data)
 
 
 try:

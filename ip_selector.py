@@ -28,12 +28,12 @@ class Org(Enum):
 	# CWD = 'Валежник'
 
 
-def where_clause(orgs, ts_low, ts_high, blocked):
+def where_clause(orgs, ts_low, ts_high, time, group_by='latitude, longitude'):
 	#TODO: parameterize with ?
-	time_field = "include_time" if blocked else "exclude_time"
+	time_field = time
 	query = ' where {2} is not null and {2} >= \'{0}\' and {2} <= \'{1}\''.format(ts_low, ts_high, time_field)
 	query += ' and org in (\'' + str('\', \''.join([org.value for org in orgs])) + '\')'
-	return query + ' group by latitude, longitude'
+	return query + ' group by {}'.format(group_by)
 		
 
 def filter_ip(ip_dict, subnet_dict):
@@ -78,24 +78,36 @@ def select_ip(orgs=[org for org in Org], ts_low=min_date, ts_high=max_date, use_
 	query = 'select latitude, longitude, sum(2 << (31 - length(prefix))), 1 as type, max(include_time) as time from blocked_ip'
 	query += ' join geo_prefix on (prefix between (ip_bin || \'0\') and (ip_bin || \'1\')) or (prefix = ip_bin)'
 	query += ' join block_geo on (block_geo.id = geo_id)'
-	query += where_clause(orgs, ts_low, ts_high, True)
+	query += where_clause(orgs, ts_low, ts_high, 'include_time')
 	query += ' union '
 	query += 'select latitude, longitude, count(*), 1 as type, max(include_time) as time from blocked_ip'
 	query += ' join block_geo on (block_id = blocked_ip.id) and (ip_subnet is null)'
-	query += where_clause(orgs, ts_low, ts_high, True)
+	query += where_clause(orgs, ts_low, ts_high, 'include_time')
 	query += ' union '
 	query += 'select latitude, longitude, sum(2 << (31 - length(prefix))), 0 as type, max(exclude_time) as time from blocked_ip'
 	query += ' join geo_prefix on (prefix between (ip_bin || \'0\') and (ip_bin || \'1\')) or (prefix = ip_bin)'
 	query += ' join block_geo on (block_geo.id = geo_id)'
-	query += where_clause(orgs, ts_low, ts_high, False)
+	query += where_clause(orgs, ts_low, ts_high, 'exclude_time')
 	query += '  union '
 	query += 'select latitude, longitude, count(*), 0 as type, max(exclude_time) as time from blocked_ip'
 	query += ' join block_geo on (block_id = blocked_ip.id) and (ip_subnet is null)'
-	query += where_clause(orgs, ts_low, ts_high, False)
+	query += where_clause(orgs, ts_low, ts_high, 'exclude_time')
 	query += ' order by time, type desc'
 	# print(query)
 	data = engine.execute(query).fetchall()
 	return data
+
+
+def select_stats(orgs=[org for org in Org], ts_low=min_date, ts_high=max_date):
+    query = 'select date, sum(blocked_number) as blocked, sum(unlocked_number) as unlocked from stats'
+    query += where_clause(orgs, ts_low, ts_high, 'date', group_by='date')
+    query += ' order by date'
+    data = engine.execute(query).fetchall()
+
+    start_ts = datetime.strptime(data[0]['date'], '%Y-%m-%d').timestamp() * 1000
+    stats = [('Заблокировано', '#FF0000', start_ts, [item['blocked'] for item in data]),
+             ('Разблокировано', '#00FF00', start_ts, [item['unlocked'] for item in data])]
+    return stats
 
 
 def smart_print(orgs):
@@ -117,4 +129,4 @@ if __name__ == '__main__':
 	
 	res = select_ip()
 	for row in res:
-		print(row)
+	    print(row)

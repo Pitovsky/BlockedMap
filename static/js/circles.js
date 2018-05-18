@@ -77,13 +77,13 @@ $('#submitform').submit(function(e){
     url: '/filter',
     type: 'post',
     data: $('#submitform').serialize(),
-    success: function(points) {
+    success: function(data) {
       for (var i = 0; i < circles.length; ++i) {
         map.removeObject(circles[i].geom);
       }
 
-      circles = []
-console.log(marker.getPosition());
+      var points = data['gps'];
+      circles = [];
 
       for (var i = 0; i < points.length; ++i) {
         var circle = new H.map.Circle(
@@ -126,6 +126,57 @@ console.log(marker.getPosition());
 
         map.addObject(circle);
       }
+
+      var stats = data['stats'];
+        Highcharts.chart('chart-container', {
+
+        title: {
+            text: 'График блокировок по дням'
+        },
+        xAxis: {        
+            type: 'datetime',
+            labels: {
+                formatter: function() {
+                    return Highcharts.dateFormat('%d.%m.%Y', this.value);
+                }
+            }
+        },
+        yAxis: {
+            title: {
+                text: 'Количество адресов'
+            }
+        },
+        legend: {
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'middle'
+        },
+
+        plotOptions: {
+            series: {
+                label: {
+                    connectorAllowed: false
+                },
+            }
+        },
+
+        series: stats,
+
+        responsive: {
+            rules: [{
+                condition: {
+                    maxWidth: 500
+                },
+                chartOptions: {
+                    legend: {
+                        layout: 'horizontal',
+                        align: 'center',
+                        verticalAlign: 'bottom'
+                    }
+                }
+            }]
+        }
+      });     
     }
   });
 });

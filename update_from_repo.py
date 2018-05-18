@@ -43,7 +43,7 @@ logger_info.setLevel(logging.DEBUG)
 
 
 def count_network_ips(subnet):
-    prefix = get_bin_prefix(ip_network(addresses[block_id]))
+    prefix = get_bin_prefix(ip_network(subnet))
     return 2 << (31 - len(prefix))
 
 
@@ -217,7 +217,7 @@ def update_stats(session, added_ips, removed_ips, date, commit):
 
 def update(repo, session): 
     for date, commit, added_ip_clean, removed_ip_clean in gen_clean_ips(repo):
-        update_geodata(session, added_ip_clean, removed_ip_clean, date, commit)
+        #update_geodata(session, added_ip_clean, removed_ip_clean, date, commit)
         update_stats(session, added_ip_clean, removed_ip_clean, date, commit)
         
         try:
