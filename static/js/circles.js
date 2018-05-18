@@ -55,7 +55,7 @@ function prettyScaling(size, zoom) {
   if (size < threshold) {
     radius = (size) / zoom;
   } else {
-    radius = (threshold + Math.log(size - threshold + 1)) / zoom;
+    radius = (threshold + Math.pow(size - threshold + 1, 0.25)) / zoom;
   }
   return base + radius * (2 ** 20 / threshold);
 }
