@@ -8,7 +8,8 @@ var RknCoordinates = {
 var mapOptions = {
   zoom: 2,
   height: 600,
-  width: 900
+  width: 900,
+  noWrap: true
 };
 
 var defaultLayers = platform.createDefaultLayers();
