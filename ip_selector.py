@@ -105,8 +105,8 @@ def select_stats(orgs=[org for org in Org], ts_low=min_date, ts_high=max_date):
     data = engine.execute(query).fetchall()
 
     start_ts = datetime.strptime(data[0]['date'], '%Y-%m-%d').timestamp() * 1000
-    stats = [('Заблокировано', '#FF0000', start_ts, [item['blocked'] for item in data]),
-             ('Разблокировано', '#00FF00', start_ts, [item['unlocked'] for item in data])]
+    stats = [('Заблокировано', '#FF0000', start_ts, [item['blocked'] if item['blocked'] else 0 for item in data]),
+             ('Разблокировано', '#00FF00', start_ts, [item['unlocked'] if item['unlocked'] else 0 for item in data])]
     return stats
 
 

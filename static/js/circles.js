@@ -72,6 +72,15 @@ window.addEventListener('resize', function () {
   map.getViewPort().resize();
 });
 
+Highcharts.Axis.prototype.log2lin = function (num) {
+    return Math.log(num) / Math.LN2;
+};
+
+Highcharts.Axis.prototype.lin2log = function (num) {
+    return Math.pow(2, num);
+};
+    
+
 $('#submitform').submit(function(e){
   e.preventDefault();
   $.ajax({
@@ -130,7 +139,10 @@ $('#submitform').submit(function(e){
 
       var stats = data['stats'];
         Highcharts.chart('chart-container', {
-
+        chart: {
+            height: 400,
+            type: 'column'
+        },
         title: {
             text: 'График блокировок по дням'
         },
@@ -143,14 +155,37 @@ $('#submitform').submit(function(e){
             }
         },
         yAxis: {
+            type: 'logarithmic',
             title: {
                 text: 'Количество адресов'
-            }
+            },
+            min: 0.3125,
+            max: 2 << 22,
+            startOnTick: false,
+            labels: {
+                formatter: function() {
+                    console.log(this.value);
+                    if (this.value < 1) {
+                        return 0;
+                    } else {
+                        return Highcharts.Axis.prototype.defaultLabelFormatter.call(this);
+                    }
+                },
+            }, 
+
         },
         legend: {
             layout: 'vertical',
-            align: 'right',
-            verticalAlign: 'middle'
+            align: 'left',
+            floating: true,
+            x: 100,
+            y: 50,
+            verticalAlign: 'top',
+            labelFormatter: function() {
+                var total = 0;
+                for (var i=this.yData.length; i--;) { total += this.yData[i]; };
+                    return this.name + ': ' + total + ' адресов';
+            }
         },
 
         plotOptions: {
