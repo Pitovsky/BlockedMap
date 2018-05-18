@@ -47,7 +47,7 @@ def make_info():
     gps = [{'lat': p[0] if p[0] else 0, 
         'lng': p[1] if p[1] else 0, 
         'count': p[2] if p[2] else 0, 
-        'fill_color': unlocked_color.format(0.9) if p[3] == 1 else blocked_color.format(0.9)}
+        'fill_color': unlocked_color.format(0.9) if p[3] == 0 else blocked_color.format(0.9)}
         for p in select_ip(orgs, ts_low, ts_high)]
     stats = [{'name': kind, 'color': color, 'pointStart': start, 'pointInterval': 24 * 3600 * 1000, 'data': stat} for kind, color, start, stat in select_stats(orgs, ts_low, ts_high)]
 
