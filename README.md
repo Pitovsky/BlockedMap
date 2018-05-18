@@ -1,4 +1,4 @@
-# Map of IP addresses that are blocked in Russia ([blockedhere.pythonanywhere.com](http://blockedhere.pythonanywhere.com/).
+# [Map of IP addresses that are blocked in Russia](http://blockedhere.pythonanywhere.com/).
 
 Project for [MLH 2018 Moscow Hack](hack.moscow).
 
