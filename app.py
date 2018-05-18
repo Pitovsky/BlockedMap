@@ -34,21 +34,25 @@ def draw_map():
 @app.route('/filter',  methods=['POST'])
 def make_info():
     data = request.form
+    print(data)
     orgs = []
     ts_low = None
     ts_high = None
+    only_locked = False
     for key in data:
         if key == "range":
             tss = data[key].split(" - ")
             ts_low = datetime.strptime(tss[0], "%d.%m.%Y").date()
             ts_high = datetime.strptime(tss[1], "%d.%m.%Y").date()
+        elif key == "only_locked":
+            only_locked = True
         else:
             orgs.append(getattr(Org, key))
     gps = [{'lat': p[0] if p[0] else 0, 
         'lng': p[1] if p[1] else 0, 
         'count': p[2] if p[2] else 0, 
         'fill_color': unlocked_color.format(0.9) if p[3] == 0 else blocked_color.format(0.9)}
-        for p in select_ip(orgs, ts_low, ts_high)]
+        for p in select_ip(orgs, ts_low, ts_high, only_locked=only_locked)]
     stats = [{'name': kind, 'color': color, 'pointStart': start, 'pointInterval': 24 * 3600 * 1000, 'data': stat} for kind, color, start, stat in select_stats(orgs, ts_low, ts_high)]
 
     data = {'gps': gps, 'stats': stats}

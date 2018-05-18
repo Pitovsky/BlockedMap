@@ -1,12 +1,12 @@
 $("#select_all").change(function() { 
-    $(":checkbox").prop('checked', $(this).prop("checked"));
+    $(":checkbox.org").prop('checked', $(this).prop("checked"));
 });
 
-$(':checkbox').change(function(){ 
+$(':checkbox.org').change(function(){ 
     if(false == $(this).prop("checked")) {
         $("#select_all").prop('checked', false);
     }
-    if ($(':checkbox:checked').length == $(':checkbox').length) {
+    if ($(':checkbox.org:checked').length == $(':checkbox.org').length) {
       $("#select_all").prop('checked', true);
     }
 });
@@ -45,6 +45,6 @@ $(function() {
 
 
 $(document).ready(function() {
-    $(":checkbox").prop('checked', true);
+    $(":checkbox.org").prop('checked', true);
     $("#submitform").submit();
 });
