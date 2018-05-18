@@ -23,24 +23,23 @@ BASEDIR = os.path.abspath(os.path.dirname(__file__))
 repo_path = os.path.join(BASEDIR, '../z-i/')
 
 logger = logging.getLogger('errors')
-logger_info = logging.getLogger(__name__)
+logger_info = logging.getLogger('update')
 # only errors here
 fh = logging.FileHandler(os.path.join(BASEDIR, 'errors.log'))
-fh.setLevel(logging.ERROR)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s',
                                 datefmt='%Y-%m-%d %H:%M:%S')
 # everything is written here
 fh_all = logging.FileHandler(os.path.join(BASEDIR, 'update.log'))
-fh_all.setLevel(logging.INFO)
 fh_all.setFormatter(formatter)
 # piping everything to console
 ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
 ch.setFormatter(formatter)
 # add the handlers to the logger
 logger.addHandler(fh)
+logger.setLevel(logging.ERROR)
 logger_info.addHandler(fh_all)
 logger_info.addHandler(ch)
+logger_info.setLevel(logging.DEBUG)
 
 
 def count_network_ips(subnet):
@@ -58,7 +57,7 @@ def get_changes(repo_path, squash=False):
     repo = git.Repo(repo_path)
     repo.remotes.origin.fetch()
     fetched = list(repo.iter_commits('HEAD..origin'))
-    logger_info.info('{0} commits are fetched!'.format(len(fetched)))
+    logger_info.warning('{0} commits are fetched!'.format(len(fetched)))
     logger_info.info('Head is now at {0}.'.format(repo.heads.master.commit))
     fetched.reverse()
     squashed_commits = []
