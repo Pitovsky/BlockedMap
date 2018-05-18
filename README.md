@@ -52,8 +52,6 @@ python app.py
 
 Voilà!
 
-ver
-
 ## Built by
 
 Madidea Team ( [alexeyqu](https://github.com/alexeyqu), [neganovalexey](https://github.com/neganovalexey), [paulin-mipt](https://github.com/paulin-mipt), [Pitovsky](https://github.com/Pitovsky) )
