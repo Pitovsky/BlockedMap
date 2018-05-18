@@ -66,9 +66,10 @@ def filter_ip(ip_dict, subnet_dict):
 	return top_level_ip
 
 
-def select_ip(orgs=[org for org in Org], ts_low=min_date, ts_high=max_date, use_cache=True):
+def select_ip(orgs=[org for org in Org], ts_low=min_date, ts_high=max_date, use_cache=True, only_locked = False):
 	# sorry about that..
-	if use_cache and len(orgs) == len(Org) and ts_low == min_date and ts_high == max_date and os.path.isfile(full_geo_cache):
+	print(orgs)
+	if use_cache and len(orgs) == len(Org) and ts_low == min_date and ts_high == max_date and not only_locked and os.path.isfile(full_geo_cache):
 		with open(full_geo_cache, 'rb') as cache:
 			try:
 				data = pickle.load(cache)
@@ -83,30 +84,32 @@ def select_ip(orgs=[org for org in Org], ts_low=min_date, ts_high=max_date, use_
 	query += 'select latitude, longitude, count(*), 1 as type, max(include_time) as time from blocked_ip'
 	query += ' join block_geo on (block_id = blocked_ip.id) and (ip_subnet is null)'
 	query += where_clause(orgs, ts_low, ts_high, 'include_time')
-	query += ' union '
-	query += 'select latitude, longitude, sum(2 << (31 - length(prefix))), 0 as type, max(exclude_time) as time from blocked_ip'
-	query += ' join geo_prefix on (prefix between (ip_bin || \'0\') and (ip_bin || \'1\')) or (prefix = ip_bin)'
-	query += ' join block_geo on (block_geo.id = geo_id)'
-	query += where_clause(orgs, ts_low, ts_high, 'exclude_time')
-	query += '  union '
-	query += 'select latitude, longitude, count(*), 0 as type, max(exclude_time) as time from blocked_ip'
-	query += ' join block_geo on (block_id = blocked_ip.id) and (ip_subnet is null)'
-	query += where_clause(orgs, ts_low, ts_high, 'exclude_time')
+	if not only_locked:
+		query += ' union '
+		query += 'select latitude, longitude, sum(2 << (31 - length(prefix))), 0 as type, max(exclude_time) as time from blocked_ip'
+		query += ' join geo_prefix on (prefix between (ip_bin || \'0\') and (ip_bin || \'1\')) or (prefix = ip_bin)'
+		query += ' join block_geo on (block_geo.id = geo_id)'
+		query += where_clause(orgs, ts_low, ts_high, 'exclude_time')
+		query += '  union '
+		query += 'select latitude, longitude, count(*), 0 as type, max(exclude_time) as time from blocked_ip'
+		query += ' join block_geo on (block_id = blocked_ip.id) and (ip_subnet is null)'
+		query += where_clause(orgs, ts_low, ts_high, 'exclude_time')
 	query += ' order by time, type desc'
-	# print(query)
+	print(query)
 	data = engine.execute(query).fetchall()
 	return data
 
 
-def select_stats(orgs=[org for org in Org], ts_low=min_date, ts_high=max_date):
+def select_stats(orgs=[org for org in Org], ts_low=min_date, ts_high=max_date, only_locked=False):
     query = 'select date, sum(blocked_number) as blocked, sum(unlocked_number) as unlocked from stats'
     query += where_clause(orgs, ts_low, ts_high, 'date', group_by='date')
     query += ' order by date'
     data = engine.execute(query).fetchall()
 
     start_ts = datetime.strptime(data[0]['date'], '%Y-%m-%d').timestamp() * 1000
-    stats = [('Заблокировано', '#FF0000', start_ts, [item['blocked'] if item['blocked'] else 0 for item in data]),
-             ('Разблокировано', '#00FF00', start_ts, [item['unlocked'] if item['unlocked'] else 0 for item in data])]
+    stats = [('Заблокировано', '#FF0000', start_ts, [item['blocked'] if item['blocked'] else 0 for item in data])]
+    if not only_locked:
+    	stats.append(('Разблокировано', '#00FF00', start_ts, [item['unlocked'] if item['unlocked'] else 0 for item in data]))
     return stats
 
 

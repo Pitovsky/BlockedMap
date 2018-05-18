@@ -53,7 +53,8 @@ def make_info():
         'count': p[2] if p[2] else 0, 
         'fill_color': unlocked_color.format(0.9) if p[3] == 0 else blocked_color.format(0.9)}
         for p in select_ip(orgs, ts_low, ts_high, only_locked=only_locked)]
-    stats = [{'name': kind, 'color': color, 'pointStart': start, 'pointInterval': 24 * 3600 * 1000, 'data': stat} for kind, color, start, stat in select_stats(orgs, ts_low, ts_high)]
+    stats = [{'name': kind, 'color': color, 'pointStart': start, 'pointInterval': 24 * 3600 * 1000, 'data': stat} 
+        for kind, color, start, stat in select_stats(orgs, ts_low, ts_high, only_locked=only_locked)]
 
     data = {'gps': gps, 'stats': stats}
     return jsonify(data)
