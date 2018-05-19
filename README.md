@@ -2,9 +2,9 @@
 
 Visit [blockedhere.pythonanywhere.com](http://blockedhere.pythonanywhere.com/) to explore it!
 
-Project for [MLH 2018 Moscow Hack](hack.moscow).
+Project for [MLH 2018 Moscow Hack](https://hack.moscow).
 
-Implemented with HERE Geo-API, inspired by [RosKomSvoboda](rublacklist.net).
+Implemented with HERE Geo-API, inspired by [RosKomSvoboda](https://roskomsvoboda.org/).
 
 The data is taken from [Zapret-Info repository](https://github.com/zapret-info/z-i) and can be processed in 2 ways: 
 * getting it from a particular snapshot of the IP list (faster, but less history is available);
