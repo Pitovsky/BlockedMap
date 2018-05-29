@@ -69,7 +69,7 @@ def get_changes(repo_path, squash=False):
             squashed_commits.append((commit.parents[0], commit))
             parent = commit
             continue
-        if datetime.datetime.fromtimestamp(commit.committed_date).day != datetime.datetime.fromtimestamp(next_commit.committed_date).day:
+        if datetime.datetime.fromtimestamp(commit.authored_date).day != datetime.datetime.fromtimestamp(next_commit.authored_date).day:
             squashed_commits.append((parent, commit))
             parent = commit
     if squash:
@@ -104,7 +104,7 @@ def get_changes(repo_path, squash=False):
 
 def gen_clean_ips(repo):
     for commit, added, removed in tqdm(get_changes(repo, True)):
-        date = datetime.datetime.fromtimestamp(commit.committed_date).strftime('%Y-%m-%d')
+        date = datetime.datetime.fromtimestamp(commit.authored_date).strftime('%Y-%m-%d')
         removed_ip, added_ip = set(), set()
         
         for removed_diff in removed:
