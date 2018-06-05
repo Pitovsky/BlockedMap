@@ -92,8 +92,8 @@ class Stats(Base):
     __table_args__ = {'sqlite_autoincrement': True}
     
     id = Column('id', Integer, primary_key=True)
-    date = Column('date', String, primary_key=True)
-    org = Column('org', String, primary_key=True)
+    date = Column('date', String)
+    org = Column('org', String)
     blocked_number = Column('blocked_number', Integer)
     unlocked_number = Column('unlocked_number', Integer)
 
