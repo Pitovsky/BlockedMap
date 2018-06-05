@@ -68,7 +68,6 @@ def filter_ip(ip_dict, subnet_dict):
 
 def select_ip(orgs=[org for org in Org], ts_low=min_date, ts_high=max_date, use_cache=True, only_locked = False):
 	# sorry about that..
-	print(orgs)
 	if use_cache and len(orgs) == len(Org) and ts_low == min_date and ts_high == max_date and not only_locked and os.path.isfile(full_geo_cache):
 		with open(full_geo_cache, 'rb') as cache:
 			try:
@@ -95,7 +94,6 @@ def select_ip(orgs=[org for org in Org], ts_low=min_date, ts_high=max_date, use_
 		query += ' join block_geo on (block_id = blocked_ip.id) and (ip_subnet is null)'
 		query += where_clause(orgs, ts_low, ts_high, 'exclude_time')
 	query += ' order by time, type desc'
-	print(query)
 	data = engine.execute(query).fetchall()
 	return data
 
@@ -106,11 +104,34 @@ def select_stats(orgs=[org for org in Org], ts_low=min_date, ts_high=max_date, o
     query += ' order by date'
     data = engine.execute(query).fetchall()
 
-    start_ts = datetime.strptime(data[0]['date'], '%Y-%m-%d').timestamp() * 1000
-    stats = [('Заблокировано', '#FF0000', start_ts, [item['blocked'] if item['blocked'] else 0 for item in data])]
-    if not only_locked:
-    	stats.append(('Разблокировано', '#00FF00', start_ts, [item['unlocked'] if item['unlocked'] else 0 for item in data]))
-    return stats
+    def make_date(ts):
+        return datetime.fromtimestamp(ts // 1000).strftime('%Y-%m-%d')
+
+    def make_ts(formatted_date):
+        return datetime.strptime(formatted_date, '%Y-%m-%d').timestamp() * 1000
+
+    # fill empty days with zeros
+    def extend_stats(stats):
+        extended = []
+        for stat in stats:
+            if extended:
+                ts_start = make_ts(extended[-1]['date']) + 24 * 60 * 60 * 1000
+                ts_end = make_ts(stat['date'])
+                while ts_start < ts_end:
+                    extended.append({'date': make_date(ts_start), 'blocked': 0, 'unlocked': 0})
+                    ts_start += 24 * 60 * 60 * 1000
+            extended.append(stat)
+        return extended
+    
+    if data:
+        #data = extend_stats(data)
+        start_ts = make_ts(data[0]['date'])
+        stats = [('Заблокировано', '#FF0000', start_ts, [item['blocked'] for item in data])]
+        if not only_locked:
+    	    stats.append(('Разблокировано', '#00FF00', start_ts, [item['unlocked'] for item in data]))
+        return stats
+    else:
+        return []
 
 
 def smart_print(orgs):

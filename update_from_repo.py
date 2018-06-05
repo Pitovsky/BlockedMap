@@ -51,6 +51,10 @@ class DayStats:
     def __init__(self):
         self.blocked = defaultdict(int)
         self.unlocked = defaultdict(int)
+        self.no_org = 0
+
+    def __str__(self):
+        return '<DayStats> blocked: {}, unlocked: {}, not counted: {}'.format(sum(self.blocked.values()), sum(self.unlocked.values()), self.no_org)
 
 
 def get_changes(repo_path, squash=False):
@@ -128,7 +132,7 @@ def gen_clean_ips(repo):
         removed_ip_clean = removed_ip - added_ip
         logger_info.info('{} {} {} {} {} {}'.format(commit, date, len(added_ip), len(removed_ip), len(added_ip_clean), len(removed_ip_clean)))
         assert(len(added_ip) - len(added_ip_clean) == len(removed_ip) - len(removed_ip_clean))
-        yield date, commit, map(dict, added_ip_clean), map(dict, removed_ip_clean) 
+        yield date, commit, list(map(dict, added_ip_clean)), list(map(dict, removed_ip_clean)) 
 
 
 def update_geodata(session, added_ips, removed_ips, date, commit):
@@ -179,14 +183,20 @@ def update_geodata(session, added_ips, removed_ips, date, commit):
 
 def update_stats(session, added_ips, removed_ips, date, commit):
     stats = DayStats()
+    logger_info.info('added_ips: {}, removed_ips: {}, date: {}, commit: {}'.format(len(added_ips), len(removed_ips), date, commit))
+
     for added in added_ips:
         try:
             if added['ip']:
                 if added['org']:
                     stats.blocked[added['org']] += 1
+                else:
+                    stats.no_org += 1
             elif added['ip_subnet']:
                 if added['org']:
                     stats.blocked[added['org']] += count_network_ips(added['ip_subnet'])
+                else:
+                    stats.no_org += count_network_ips(added['ip_subnet'])
             else:
                 raise Exception("Bad ip data: " + str(added))
         except Exception as e:
@@ -197,14 +207,19 @@ def update_stats(session, added_ips, removed_ips, date, commit):
             if removed['ip']:
                 if removed['org']:
                     stats.unlocked[added['org']] += 1
+                else:
+                    stats.no_org += 1
             elif removed['ip_subnet']:
                 if removed['org']:
                     stats.unlocked[added['org']] += count_network_ips(removed['ip_subnet'])
+                else:
+                    stats.no_org += count_network_ips(removed['ip_subnet'])
             else:
                 raise Exception("Bad ip data: " + str(removed))
         except Exception as e:
             logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, removed, e))
     
+    logger_info.info(str(stats))
     for org in set(stats.blocked.keys()) | set(stats.unlocked.keys()):
         session.add(Stats(date, stats.blocked[org], stats.unlocked[org], org))
         
@@ -233,4 +248,4 @@ if __name__ == '__main__':
     session = Session()
     update(repo_path, session)
     make_cache()
-    
+ 
