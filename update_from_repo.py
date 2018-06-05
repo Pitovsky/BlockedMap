@@ -206,12 +206,12 @@ def update_stats(session, added_ips, removed_ips, date, commit):
         try:
             if removed['ip']:
                 if removed['org']:
-                    stats.unlocked[added['org']] += 1
+                    stats.unlocked[removed['org']] += 1
                 else:
                     stats.no_org += 1
             elif removed['ip_subnet']:
                 if removed['org']:
-                    stats.unlocked[added['org']] += count_network_ips(removed['ip_subnet'])
+                    stats.unlocked[removed['org']] += count_network_ips(removed['ip_subnet'])
                 else:
                     stats.no_org += count_network_ips(removed['ip_subnet'])
             else:
@@ -233,6 +233,7 @@ def update(repo, session):
             session.commit()
         except Exception as e:
             logger.error('Commit failed: {0}\t{1}'.format(commit, date))
+            raise
 
 
 def get_repo_state():
