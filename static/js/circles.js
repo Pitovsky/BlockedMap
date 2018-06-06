@@ -148,6 +148,7 @@ $('#submitform').submit(function(e){
         },
         xAxis: {        
             type: 'datetime',
+            ordinal: false,
             labels: {
                 formatter: function() {
                     return Highcharts.dateFormat('%d.%m.%Y', this.value);
