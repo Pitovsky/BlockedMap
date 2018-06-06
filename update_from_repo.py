@@ -57,6 +57,11 @@ class DayStats:
         return '<DayStats> blocked: {}, unlocked: {}, not counted: {}'.format(sum(self.blocked.values()), sum(self.unlocked.values()), self.no_org)
 
 
+def get_commit_date(commit):
+    # datetime.datetime.fromtimestamp(commit.authored_date).strftime('%Y-%m-%d')
+    return commit.message.split(' ')[1]
+
+
 def get_changes(repo_path, squash=False):
     repo = git.Repo(repo_path)
     repo.remotes.origin.fetch()
@@ -67,13 +72,14 @@ def get_changes(repo_path, squash=False):
     squashed_commits = []
     parent = repo.heads.master.commit
     last_processed_commit = repo.heads.master.commit
+
     for commit, next_commit in zip(fetched, fetched[1:]):
         assert(len(commit.parents) == 1) # linear repo
         if not squash:
             squashed_commits.append((commit.parents[0], commit))
             parent = commit
             continue
-        if datetime.datetime.fromtimestamp(commit.authored_date).day != datetime.datetime.fromtimestamp(next_commit.authored_date).day:
+        if get_commit_date(commit) != get_commit_date(next_commit):
             squashed_commits.append((parent, commit))
             parent = commit
     if squash:
@@ -108,7 +114,7 @@ def get_changes(repo_path, squash=False):
 
 def gen_clean_ips(repo):
     for commit, added, removed in tqdm(get_changes(repo, True)):
-        date = datetime.datetime.fromtimestamp(commit.authored_date).strftime('%Y-%m-%d')
+        date = get_commit_date(commit)
         removed_ip, added_ip = set(), set()
         
         for removed_diff in removed:
