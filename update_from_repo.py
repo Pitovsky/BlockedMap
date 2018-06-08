@@ -20,7 +20,11 @@ from ipaddress import ip_network, ip_address
 
 Session = sessionmaker(bind=engine)
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
+LOGSDIR = BASEDIR + '/logs/'
 repo_path = os.path.join(BASEDIR, '../z-i/')
+report_threshold = 5000
+
+os.makedirs(LOGSDIR, exist_ok=True)
 
 logger = logging.getLogger('errors')
 logger_info = logging.getLogger('update')
@@ -105,15 +109,28 @@ def get_changes(repo_path, squash=False):
                 added.append(line)
             if line.startswith('-'):
                 removed.append(line)
-        yield commit, added, removed
+        yield prev, commit, added, removed
         last_processed_commit = commit
     repo.heads.master.set_commit(last_processed_commit)
     repo.heads.master.checkout(force=True)
     logger_info.info('Head is now at {0}, {1} commits behind origin.'.format(repo.heads.master.commit, len(list(repo.iter_commits('HEAD..origin')))))
 
 
+def report(prev, commit, added_ip_clean, removed_ip_clean):
+    date = get_commit_date(commit)
+    with open(LOGSDIR + 'report_{0}.log'.format(date), 'w') as f:
+        f.write('{0} --> {1} (+ {2}, - {3})\n'.format(prev, commit, len(added_ip_clean), len(removed_ip_clean)))
+        commits = list(git.Repo(repo_path).iter_commits('{0}..{1}'.format(prev, commit)))
+        for c in commits:
+            dump = c.stats.files.get('dump.csv')
+            if dump:
+                f.write('{0}\t+{1}\t-{2}\n'.format(c, dump['insertions'], dump['deletions']))
+            else:
+                f.write('{0}\t{1}\n'.format(c, c.stats.files))
+
+
 def gen_clean_ips(repo):
-    for commit, added, removed in tqdm(get_changes(repo, True)):
+    for prev, commit, added, removed in tqdm(get_changes(repo, True)):
         date = get_commit_date(commit)
         removed_ip, added_ip = set(), set()
         
@@ -137,6 +154,8 @@ def gen_clean_ips(repo):
         added_ip_clean = added_ip - removed_ip
         removed_ip_clean = removed_ip - added_ip
         logger_info.info('{} {} {} {} {} {}'.format(commit, date, len(added_ip), len(removed_ip), len(added_ip_clean), len(removed_ip_clean)))
+        if len(added_ip_clean) > report_threshold or len(removed_ip_clean) > report_threshold:
+            report(prev, commit, added_ip_clean, removed_ip_clean)
         assert(len(added_ip) - len(added_ip_clean) == len(removed_ip) - len(removed_ip_clean))
         yield date, commit, list(map(dict, added_ip_clean)), list(map(dict, removed_ip_clean)) 
 
