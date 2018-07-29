@@ -1,9 +1,6 @@
 var mapContainer = document.getElementById('map-container');
 
-var RknCoordinates = {
-  lat: 55.75155,
-  lng: 37.6365
-};
+var RknCoordinates = [55.75155, 37.6365];
 
 var mapOptions = {
   zoom: 2,
@@ -11,8 +8,6 @@ var mapOptions = {
   width: 900,
   noWrap: true
 };
-
-// var defaultLayers = platform.createDefaultLayers();
 
 var map = L.map('map-container').setView([20, 0], 2);
 
@@ -24,40 +19,14 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=p
   id: 'mapbox.streets'
 }).addTo(map);
 
-// var map = new H.Map(
-//   mapContainer,
-//   defaultLayers.normal.map,
-//   mapOptions);
-
 var circles = []
 
-// var iconOptions = {
-//   size: new H.math.Size(81, 50),
-//   anchor: new H.math.Point(25, 25)
-// };
+var RKNIcon = L.icon({
+  iconUrl: iconUrl,
 
-// var markerOptions = {
-//   icon: new H.map.Icon(iconUrl, iconOptions)
-// };
-
-// var marker = new H.map.Marker(RknCoordinates, markerOptions);
-// map.addObject(marker);
-
-// var mapTileService = platform.getMapTileService({
-//     type: 'base'
-//   }),
-//   russianMapLayer = mapTileService.createTileLayer(
-//     'maptile',
-//     'normal.day',
-//     256,
-//     'png8',
-//     {lg: 'RUS'}
-//   );
-// map.setBaseLayer(russianMapLayer);
-
-
-// var behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
-// var ui = H.ui.UI.createDefault(map, defaultLayers, 'ru-RU');
+  iconSize:     [81, 50], // size of the icon
+  iconAnchor:   [25, 25], // point of the icon which will correspond to marker's location
+});
 
 function prettyScaling(size, zoom) {
   threshold = 32
@@ -160,6 +129,8 @@ $('#submitform').submit(function(e){
 
         circle.addTo(map);
       }
+
+      L.marker(RknCoordinates, {icon: RKNIcon}).addTo(map);
 
       var stats = data['stats'];
         Highcharts.chart('chart-container', {
