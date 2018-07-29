@@ -67,12 +67,17 @@ function prettyScaling(size, zoom) {
   } else {
     radius = (threshold + Math.pow(size - threshold + 1, 0.25)) / zoom;
   }
-  return base + radius * (2 ** 20 / threshold);
+  scaled_size = base + radius * (2 ** 20 / threshold);
+  if (scaled_size < 0) {
+    // this doesn't help
+    scaled_size = scaled_size * -1;
+  }
+  return scaled_size;
 }
 
 setInterval(function() {
   for (var i = 0; i < circles.length; ++i) {
-    var lat = circles[i].geom.getCenter().lat;
+    var lat = circles[i].getCenter().lat;
     circles[i].geom.setRadius(prettyScaling(circles[i].size, 2 << map.getZoom())*Math.cos((180 / Math.PI)*lat));
   }
 }, 500);
@@ -105,51 +110,56 @@ $('#submitform').submit(function(e){
       var points = data['gps'];
       circles = [];
 
-      console.log(points);
-
       for (var i = 0; i < points.length; ++i) {
+        var radius = prettyScaling(points[i].count, 2 << map.getZoom())*Math.cos((180 / Math.PI)*points[i].lat);
+        if (radius < 0) {
+          // hotfix wtf is going on here
+          radius = radius * -1;
+        }
         var circle = new L.Circle(
           [points[i].lat, points[i].lng],
-          {radius: prettyScaling(points[i].count, 2 << map.getZoom())*Math.cos((180 / Math.PI)*points[i].lat),
+          {radius: radius,
           color: 'black', fillColor: points[i].fill_color, 
           fillOpacity: '0.7', weight: 0})
 
-        circle.bindPopup(points[i].lat.toString() + ' ' + points[i].lng.toString());
-        // circle.setData(points[i].lat.toString() + ' ' + points[i].lng.toString());
-
-        // circle.addEventListener('tap', function (evt) {
-        //   var bubble =  new H.ui.InfoBubble(evt.target.getCenter(), {
-        //     content: evt.target.getData()
-        //   });
-        //   ui.addBubble(bubble);
-        // }, false);
+        circle.bindPopup(points[i].lat.toString() + ' ' + points[i].lng.toString() + ' ' + circle.getRadius().toString());
 
         circles.push({size: points[i].count, geom: circle});
 
         circle.addTo(map);
       }
 
-      // for (var i = 0; i < points.length; ++i) {
-      //   var circle = new L.Circle(
-      //     [points[i].lat, points[i].lng],
-      //     {radius: prettyScaling(points[i].count, 2 << map.getZoom())*Math.cos((180 / Math.PI)*points[i].lat),
-      //     color: 'black', weight: 2.0})
+      for (var i = 0; i < points.length; ++i) {
+        var radius = prettyScaling(points[i].count, 2 << map.getZoom())*Math.cos((180 / Math.PI)*points[i].lat);
+        if (radius < 0) {
+          // hotfix wtf is going on here
+          radius = radius * -1;
+        }
+        var circle = new L.Circle(
+          [points[i].lat, points[i].lng],
+          {radius: radius,
+          color: 'black', weight: 2.0})
         
-      //   circles.push({size: points[i].count, geom: circle});
+        circles.push({size: points[i].count, geom: circle});
 
-      //   circle.addTo(map);
-      // }
+        circle.addTo(map);
+      }
 
-      // for (var i = 0; i < points.length; ++i) {
-      //   var circle = new L.Circle(
-      //     [points[i].lat, points[i].lng],
-      //     {radius: prettyScaling(points[i].count, 2 << map.getZoom())*Math.cos((180 / Math.PI)*points[i].lat),
-      //     color: points[i].fill_color, weight: 1.0})
+      for (var i = 0; i < points.length; ++i) {
+        var radius = prettyScaling(points[i].count, 2 << map.getZoom())*Math.cos((180 / Math.PI)*points[i].lat);
+        if (radius < 0) {
+          // hotfix wtf is going on here
+          radius = radius * -1;
+        }
+        var circle = new L.Circle(
+          [points[i].lat, points[i].lng],
+          {radius: radius,
+          color: points[i].fill_color, weight: 1.0})
 
-      //   circles.push({size: points[i].count, geom: circle});
+        circles.push({size: points[i].count, geom: circle});
 
-      //   circle.addTo(map);
-      // }
+        circle.addTo(map);
+      }
 
       var stats = data['stats'];
         Highcharts.chart('chart-container', {
