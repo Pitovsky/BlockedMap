@@ -2,15 +2,9 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>HERE something was blocked!</title>
+        <title>Here something was blocked!</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width">
 
-        <link rel="stylesheet" type="text/css" href="https://js.api.here.com/v3/3.0/mapsjs-ui.css" />
-        <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-core.js"></script>
-        <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-service.js"></script>
-        <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-ui.js"></script>
-        <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-pano.js"></script>
-        <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-mapevents.js"></script>
         <script type="text/javascript" src="//cdn.jsdelivr.net/jquery/1/jquery.min.js"></script>
         <script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.1/locale/ru.js"></script>
@@ -21,6 +15,9 @@
 
         <link rel="stylesheet" href={{ url_for("static", filename="css/app.css") }}>
         <link rel="stylesheet" href={{ url_for("static", filename="css/bootstrap.min.css") }}>
+
+        <link rel="stylesheet" href={{ url_for("static", filename="leaflet/leaflet.css") }} />
+        <script src={{ url_for("static", filename="leaflet/leaflet.js") }}></script>
     </head>
     <body>
       <section>
@@ -104,7 +101,7 @@
           </div>
         </div>
       </section>
-
+<!-- 
       <script type="text/javascript">
         var platform = new H.service.Platform({
           app_id: "{{ app_id }}",
@@ -112,11 +109,13 @@
         });
 
         var iconUrl = "{{ url_for("static", filename="img/RKN_site_logo.png") }}";
-      </script>
+      </script> -->
 
       <script src={{ url_for("static", filename="js/circles.js") }}></script>
       <script src={{ url_for("static", filename="js/helpers.js") }}></script>
-      <script src={{ url_for("static", filename="js/bootstrap.min.js") }}></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" 
+      integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" 
+      crossorigin="anonymous"></script>
 
     </body>
 </html>

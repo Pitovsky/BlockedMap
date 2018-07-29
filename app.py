@@ -25,8 +25,6 @@ def draw_map():
     commit_sha = commit.hexsha[:7]
     link = 'https://github.com/zapret-info/z-i/commit/' + commit.hexsha
     return render_template('index.html',
-                           app_id=app.app_id,
-                           app_code=app.app_code,
                            last_updated_time=commit_time,
                            last_updated_sha=commit_sha,
                            last_updated_link=link)
@@ -59,15 +57,6 @@ def make_info():
 
     data = {'gps': gps, 'stats': stats}
     return jsonify(data)
-
-
-try:
-    with open('credentials.json') as fin:
-        credentials = json.loads(fin.read())
-        app.app_id, app.app_code = credentials['app_id'], credentials['app_code']
-except (KeyError, FileNotFoundError, json.decoder.JSONDecodeError) as e:
-    print("Error while reading HERE API credentials, proceed on your own risk!")
-    print(e)
 
 
 if __name__ == '__main__':
