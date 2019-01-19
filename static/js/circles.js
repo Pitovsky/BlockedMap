@@ -143,7 +143,7 @@ $('#submitform').submit(function(e){
             type: 'column'
         },
         title: {
-            text: 'График блокировок по дням'
+            text: 'Blocked IPs per day'
         },
         xAxis: {        
             type: 'datetime',
@@ -157,7 +157,7 @@ $('#submitform').submit(function(e){
         yAxis: {
             type: 'logarithmic',
             title: {
-                text: 'Количество адресов'
+                text: 'Amount of IPs'
             },
             min: 0.3125,
             max: 2 << 22,
@@ -184,7 +184,7 @@ $('#submitform').submit(function(e){
             labelFormatter: function() {
                 var total = 0;
                 for (var i=this.yData.length; i--;) { total += this.yData[i]; };
-                    return this.name + ': ' + total + ' адресов';
+                    return this.name + ': ' + total + ' IPs';
             }
         },
 

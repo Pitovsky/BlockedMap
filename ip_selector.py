@@ -126,9 +126,9 @@ def select_stats(orgs=[org for org in Org], ts_low=min_date, ts_high=max_date, o
     if data:
         #data = extend_stats(data)
         start_ts = make_ts(data[0]['date'])
-        stats = [('Заблокировано', '#FF0000', start_ts, [[make_ts(item['date']), item['blocked']] for item in data])]
+        stats = [('Blocked', '#FF0000', start_ts, [[make_ts(item['date']), item['blocked']] for item in data])]
         if not only_locked:
-            stats.append(('Разблокировано', '#00FF00', start_ts, [[make_ts(item['date']), item['unlocked']] for item in data]))
+            stats.append(('Unblocked', '#00FF00', start_ts, [[make_ts(item['date']), item['unlocked']] for item in data]))
         return stats
     else:
         return []
