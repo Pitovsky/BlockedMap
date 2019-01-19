@@ -12,8 +12,7 @@
         <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-pano.js"></script>
         <script type="text/javascript" charset="UTF-8" src="https://js.api.here.com/v3/3.0/mapsjs-mapevents.js"></script>
         <script type="text/javascript" src="//cdn.jsdelivr.net/jquery/1/jquery.min.js"></script>
-        <script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.1/locale/ru.js"></script>
+        <script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment-with-locales.min.js"></script>
         <script src="https://code.highcharts.com/highcharts.src.js"></script>
 
         <script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
@@ -28,10 +27,10 @@
           <div class="row mar-bot20">
             <div class="col-md-8 col-md-offset-2">
               <div class="align-center">
-                <h2 align="center" style="padding-left:10px;color:#000">Карта блокировки датацентров</h2>
-                <h4 align="center" style="padding-left:10px;color:#000">Где не стоит разворачивать свой сервис? Что новенького в реестре? Где находятся сервера, которые не любит ФСКН?</h4>
-                <h5 align="center" style="padding-left:10px;color:#000">Радиус круга соотносится с количеством заблокированных IP-адресов на этой локации</h5>
-                <h5 align="center" style="padding-left:10px;color:#000">Воспользуйтесь меню для фильтрации по ведомствам и дате внесения в реестр</h5>
+                <h2 align="center" style="padding-left:10px;color:#000">Russia's Roskomnadzor activity</h2>
+                <h4 align="center" style="padding-left:10px;color:#000">Who gets banned by Russia's Federal Drug Control Service? Where are the most notorious datacenters?</h4>
+                <h5 align="center" style="padding-left:10px;color:#000">Circle radius corresponds to amount of blocked IPs in the area</h5>
+                <h5 align="center" style="padding-left:10px;color:#000">Use the menu to filter blocked IPs by date/authority</h5>
               </div>
             </div>
           </div>
@@ -50,16 +49,16 @@
                 <div class="col-sm-12 col-md-2 col-lg-2 align-left" style="margin-top: 5vh; text-align:left; display:flex; flex-direction:column">
                   <form action="/filter" method="post" target="dummyframe" id="submitform">
                     <fieldset class="form-group">
-                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="select_all" checked><u>Выбрать все</u></label></div>
-                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input org" id="FNS" name="FNS" checked>ФНС</label></div>
-                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input org" id="COURT" name="COURT" checked>Суд</label></div>
-                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input org" id="GP" name="GP" checked>Генпрокуратура</label></div>
-                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input org" id="RKN" name="RKN" checked>Роскомнадзор</label></div>
-                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input org" id="MVD" name="MVD" checked>МВД</label></div>
-                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input org" id="FSKN" name="FSKN" checked>ФСКН</label></div>
-                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input org" id="MGCOURT" name="MGCOURT" checked>Мосгорсуд</label></div>
-                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input org" id="RPN" name="RPN" checked>Роспотребнадзор</label></div>
-                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input org" id="MKS" name="MKS" checked>Минкомсвязь</label></div>
+                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="select_all" checked><u>Select all</u></label></div>
+                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input org" id="FNS" name="FNS" checked>Federal Tax Service</label></div>
+                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input org" id="COURT" name="COURT" checked>Court</label></div>
+                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input org" id="GP" name="GP" checked>Prosecutor's Office</label></div>
+                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input org" id="RKN" name="RKN" checked>Roskomnadzor</label></div>
+                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input org" id="MVD" name="MVD" checked>MVD</label></div>
+                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input org" id="FSKN" name="FSKN" checked>FSKN</label></div>
+                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input org" id="MGCOURT" name="MGCOURT" checked>Court of Moscow</label></div>
+                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input org" id="RPN" name="RPN" checked>Rospotrebnadzor</label></div>
+                      <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input org" id="MKS" name="MKS" checked>MinComSvyaz</label></div>
                     </fieldset>
                     <div id="reportrange" name="reportrange" class="input-group mb-3" style="background: #fff; cursor: pointer; padding: 2px 2px;">
                       <div class="input-group">
@@ -68,10 +67,9 @@
                       <input name="range" type="text" class="form-control"></input>
                     </div>
                     <br>
-                    <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="only_locked" name="only_locked">Только заблокированные</label></div>
+                    <div class="custom-control custom-checkbox"><label><input type="checkbox" class="custom-control-input" id="only_locked" name="only_locked">Show blocked</label></div>
                     <br>
-                    <input type="submit" class="btn btn-info" id="submit_orgs" value="Фильтровать">
-                    <a href="https://yasobe.ru/na/na_server_blocked_here" role="button" class="btn btn-lg btn-success" style="margin-top: 40px">Поддержать авторов материально?</a>
+                    <input type="submit" class="btn btn-info" id="submit_orgs" value="Filter">
                   </form>
                 </div>
               </div>
@@ -89,9 +87,9 @@
             <div class="align-center">
               <div class="row">
                 <div class="col-sm-12 col-md-12 col-lg-12" style="margin-top: 5vh; margin-left: 5vw; text-align:left; display:flex; flex-direction:column">
-                  <span style="margin-top:5px; margin-bottom:5px">При поддержке <a href="https://roskomsvoboda.org/">Роскомсвободы</a>, данные берутся из репозитория <a href="https://github.com/zapret-info/z-i/">zapret-info</a>.</span>
-                  <span style="margin-top:5px; margin-bottom:5px">Уникальный идентификатор записи в базе -- кортеж ( ip-адрес (или маска подсети), дата (блокировки или разблокировки), заблокировавшее ведомство, номер приказа ).</span>
-                  <span style="margin-top:5px; margin-bottom:5px">Последнее обновление: {{last_updated_time}} [<a style="margin: 4px !important;" href="{{last_updated_link}}">{{last_updated_sha}}</a>]</span>
+                  <span style="margin-top:5px; margin-bottom:5px">The data is taken from <a href="https://github.com/zapret-info/z-i/">zapret-info</a> repository.</span>
+                  <span style="margin-top:5px; margin-bottom:5px">Database entry unique ID -- ( IP (or subnet mask), date (blocked / unblocked), government authority, order #).</span>
+                  <span style="margin-top:5px; margin-bottom:5px">Last update: {{last_updated_time}} [<a style="margin: 4px !important;" href="{{last_updated_link}}">{{last_updated_sha}}</a>].</span>
                 </div>
                 <div class="row text-center" style="margin: 20px">
                   <span>

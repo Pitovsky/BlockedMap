@@ -19,23 +19,21 @@ $(function() {
         $('#reportrange input').val(start.format('DD.MM.YYYY') + ' - ' + end.format('DD.MM.YYYY'));
     }
 
+    moment.locale('en');
     $('#reportrange').daterangepicker({
         "locale": {
           "format": "DD.MM.YYYY",
           "separator": " - ",
-          "applyLabel": "Применить",
-          "cancelLabel": "Отмена",
-          "customRangeLabel": "Другой период",
           "firstDay": 1
         },
         startDate: start,
         endDate: end,
         ranges: {
            // 'Сегодня': [moment(), moment()],
-           'Вчера': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-           'За неделю': [moment().subtract(6, 'days'), moment()],
-           'За месяц': [moment().subtract(1, 'months'), moment()],
-           'За год': [moment().subtract(12, 'months'), moment()]
+           'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+           'Last week': [moment().subtract(6, 'days'), moment()],
+           'Last month': [moment().subtract(1, 'months'), moment()],
+           'Last year': [moment().subtract(12, 'months'), moment()]
         }
     }, cb);
 

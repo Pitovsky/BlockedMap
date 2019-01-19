@@ -36,18 +36,17 @@ map.addObject(marker);
 var mapTileService = platform.getMapTileService({
     type: 'base'
   }),
-  russianMapLayer = mapTileService.createTileLayer(
+  mapLayer = mapTileService.createTileLayer(
     'maptile',
     'normal.day',
     256,
-    'png8',
-    {lg: 'RUS'}
+    'png8'
   );
-map.setBaseLayer(russianMapLayer);
+map.setBaseLayer(mapLayer);
 
 
 var behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
-var ui = H.ui.UI.createDefault(map, defaultLayers, 'ru-RU');
+var ui = H.ui.UI.createDefault(map, defaultLayers, 'en-US');
 
 function prettyScaling(size, zoom) {
   threshold = 32
