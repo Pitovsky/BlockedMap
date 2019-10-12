@@ -1,19 +1,17 @@
-from flask import Flask, render_template, redirect, request, url_for, jsonify
-from requests import get
-from urllib.parse import urlencode
-from PIL import Image
-from io import BytesIO
-from datetime import datetime
 import json
 import locale
+from datetime import datetime
+
+from flask import Flask, render_template, request, jsonify
 
 from ip_selector import Org, select_ip, select_stats
 from update_from_repo import get_repo_state
 
 locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
 
-blocked_color = 'rgba(200, 10, 0, {})'
-unlocked_color = 'rgba(40, 200, 0, {})'
+
+BLOCKED_COLOR = 'rgba(200, 10, 0, {})'
+UNLOCKED_COLOR = 'rgba(40, 200, 0, {})'
 
 app = Flask(__name__, static_folder='static')
 gps = []
@@ -31,7 +29,7 @@ def draw_map():
                            last_updated_sha=commit_sha,
                            last_updated_link=link)
 
-@app.route('/filter',  methods=['POST'])
+@app.route('/filter', methods=['POST'])
 def make_info():
     data = request.form
     print(data)
@@ -48,14 +46,25 @@ def make_info():
             only_locked = True
         else:
             orgs.append(getattr(Org, key))
-    gps = [{'lat': p[0] if p[0] else 0, 
-        'lng': p[1] if p[1] else 0, 
-        'count': p[2] if p[2] else 0, 
-        'fill_color': unlocked_color.format(0.9) if p[3] == 0 else blocked_color.format(0.9)}
+    gps = [
+        {
+            'lat': p[0] if p[0] else 0,
+            'lng': p[1] if p[1] else 0,
+            'count': p[2] if p[2] else 0,
+            'fill_color': UNLOCKED_COLOR.format(0.9) if p[3] == 0 else BLOCKED_COLOR.format(0.9)
+        }
         for p in select_ip(orgs, ts_low, ts_high, only_locked=only_locked)]
-    
-    stats = [{'name': kind, 'color': color, 'pointStart': start, 'pointInterval': 24 * 3600 * 1000, 'data': stat} 
-        for kind, color, start, stat in select_stats(orgs, ts_low, ts_high, only_locked=only_locked)]
+
+    stats = [
+        {
+            'name': kind,
+            'color': color,
+            'pointStart': start,
+            'pointInterval': 24 * 3600 * 1000,
+            'data': stat,
+        }
+        for kind, color, start, stat in select_stats(orgs, ts_low, ts_high, only_locked=only_locked)
+    ]
 
     data = {'gps': gps, 'stats': stats}
     return jsonify(data)

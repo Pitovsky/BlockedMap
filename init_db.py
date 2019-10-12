@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
 
-import time
-import random
-import os, logging
-from pprint import pprint
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import create_engine, Table, Column, Integer, Float, String, Boolean, DateTime, MetaData, ForeignKey
-from sqlalchemy.engine.url import URL
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import NullPool
-from sqlalchemy.schema import Index
 from ipaddress import ip_network, ip_address
+import os
+import logging
+
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine, Column, Integer, Float, String, ForeignKey
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.schema import Index
 
 
 logger = logging.getLogger(__name__)
@@ -76,12 +73,12 @@ class BlockGeoData(Base):
 class GeoPrefix(Base):
     __tablename__ = 'geo_prefix'
     __table_args__ = {'sqlite_autoincrement': True}
-    
+
     id = Column('id', Integer, primary_key=True)
     geo_id = Column('geo_id', Integer, ForeignKey('block_geo.id'))
     prefix = Column('prefix', String)
     prefix_index = Index("prefix_index", prefix)
-    
+
     def __init__(self, geo_id, prefix):
         self.geo_id = geo_id
         self.prefix = prefix
@@ -90,7 +87,7 @@ class GeoPrefix(Base):
 class Stats(Base):
     __tablename__ = 'stats'
     __table_args__ = {'sqlite_autoincrement': True}
-    
+
     id = Column('id', Integer, primary_key=True)
     date = Column('date', String)
     org = Column('org', String)
