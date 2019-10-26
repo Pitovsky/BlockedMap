@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import sys
-import time
 import random
-import os, logging
+import logging
+from ipaddress import ip_network
+
 from sqlalchemy.orm import sessionmaker
-from ipaddress import ip_network, ip_address
-from tqdm import tqdm
 
 from maxmind_client import get_locations_for_ip
 from ip_selector import filter_ip
-import init_db
-from init_db import BlockedIpData, GeoPrefix, BlockGeoData, engine, get_bin_prefix, get_bin_ip
+from init_db import BlockedIpData, GeoPrefix, BlockGeoData, engine, get_bin_prefix
 
 
 NUM_INDIVIDUAL_IPS = 0
@@ -22,7 +19,6 @@ Session = sessionmaker(bind=engine)
 def load_some_geodata(session, addresses, is_subnet=False):
     geo_map = dict()
     for block_id, addr in addresses.items():
-        response = {}
         if addr.startswith('127'):
             loc = {}
             loc['latitude'] = random.uniform(52.297, 63.996)
@@ -62,12 +58,9 @@ def load_geodata(session):
     load_some_geodata(session, subnets_data, True)
 
     ips_data = {row[0]: row[1] for row in data if row[1]}
-    # print(len(ips_data))
     top_level_ips = filter_ip(ips_data, {})
-    # print(len(top_level_ips))
-    sample = {_id: top_level_ips[_id] for _id in random.sample(top_level_ips.keys(), min(NUM_INDIVIDUAL_IPS, len(top_level_ips)))}
     load_some_geodata(session, top_level_ips)
-                      
+
     session.commit()
 
 
