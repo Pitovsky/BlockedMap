@@ -28,11 +28,11 @@ os.makedirs(LOGSDIR, exist_ok=True)
 logger = logging.getLogger('errors')
 logger_info = logging.getLogger('update')
 # only errors here
-fh = logging.FileHandler(os.path.join(BASEDIR, 'errors.log'))
+fh = logging.FileHandler(os.path.join(LOGSDIR, 'errors.log'))
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s',
                               datefmt='%Y-%m-%d %H:%M:%S')
 # everything is written here
-fh_all = logging.FileHandler(os.path.join(BASEDIR, 'update.log'))
+fh_all = logging.FileHandler(os.path.join(LOGSDIR, 'update.log'))
 fh_all.setFormatter(formatter)
 # piping everything to console
 ch = logging.StreamHandler()
@@ -67,7 +67,7 @@ def get_commit_date(commit):
 
 def get_changes(repo_path, squash=False):
     repo = git.Repo(repo_path)
-    repo.remotes.origin.fetch()
+    # repo.remotes.origin.fetch()
     fetched = list(repo.iter_commits('HEAD..origin'))
     logger_info.warning('{0} commits are fetched!'.format(len(fetched)))
     logger_info.info('Head is now at {0}.'.format(repo.heads.master.commit))
