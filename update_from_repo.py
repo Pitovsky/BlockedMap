@@ -73,8 +73,7 @@ def get_changes(repo_path, squash=False):
     logger_info.info('Head is now at {0}.'.format(repo.heads.master.commit))
     fetched.reverse()
     squashed_commits = []
-    parent = repo.heads.master.commit
-    last_processed_commit = repo.heads.master.commit
+    last_processed_commit = parent = repo.head.commit
 
     for commit, next_commit in zip(fetched, fetched[1:]):
         assert len(commit.parents) == 1 # linear repo
@@ -87,14 +86,14 @@ def get_changes(repo_path, squash=False):
             parent = commit
     if squash:
         logger_info.info('Squashed: {0} diffs are compared!'.format(len(squashed_commits)))
-    d = difflib.Differ()
+
     for prev, commit in squashed_commits:
         try:
             diffs = prev.diff(commit, paths='dump.csv',
                               create_patch=True, ignore_blank_lines=True,
                               ignore_space_at_eol=True, diff_filter='cr')
         except Exception as e:
-            logger.error('{0}\t{1}\t{2}'.format(commit, prev, e))
+            logger.error('Error while calculating diff for {0}\t{1}\t{2}'.format(commit, prev, e))
             continue
         if len(diffs) == 0:
             continue
@@ -177,7 +176,7 @@ def update_geodata(session, added_ips, removed_ips, date, commit):
                     decision_date=added['decision_date'],
                 )
             else:
-                raise Exception("Bad ip data: " + str(added))
+                raise Exception("Bad ip added: " + str(added))
             if obj.first():
                 excluded = obj.filter(BlockedIpData.exclude_time is not None)
                 if excluded.first():
@@ -208,11 +207,11 @@ def update_geodata(session, added_ips, removed_ips, date, commit):
                     decision_date=removed['decision_date'],
                 )
             else:
-                raise Exception("Bad ip data: " + str(removed))
+                raise Exception("Bad ip removed: " + str(removed))
             if obj.first():
                 obj.update({'exclude_time': date})
             else:
-                raise Exception("Bad ip data: " + str(removed))
+                raise Exception("Removed ip not found: " + str(removed))
         except Exception as e:
             logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, removed, e))
 
@@ -234,7 +233,7 @@ def update_stats(session, added_ips, removed_ips, date, commit):
                 else:
                     stats.no_org += count_network_ips(added['ip_subnet'])
             else:
-                raise Exception("Bad ip data: " + str(added))
+                raise Exception("Bad ip org data added: " + str(added))
         except Exception as e:
             logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, added, e))
 
@@ -251,7 +250,7 @@ def update_stats(session, added_ips, removed_ips, date, commit):
                 else:
                     stats.no_org += count_network_ips(removed['ip_subnet'])
             else:
-                raise Exception("Bad ip data: " + str(removed))
+                raise Exception("Bad ip org data removed: " + str(removed))
         except Exception as e:
             logger.error('{0}\t{1}\t{2}\t{3}'.format(commit, date, removed, e))
 
@@ -260,7 +259,7 @@ def update_stats(session, added_ips, removed_ips, date, commit):
         session.add(Stats(date, stats.blocked[org], stats.unlocked[org], org))
 
 
-def update(repo, session):
+def db_update(repo, session):
     for date, commit, added_ip_clean, removed_ip_clean in gen_clean_ips(repo):
         update_geodata(session, added_ip_clean, removed_ip_clean, date, commit)
         update_stats(session, added_ip_clean, removed_ip_clean, date, commit)
@@ -283,5 +282,5 @@ def make_cache():
 
 if __name__ == '__main__':
     session = Session()
-    update(repo_path, session)
+    db_update(repo_path, session)
     make_cache()
