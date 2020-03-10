@@ -51,13 +51,14 @@ def count_network_ips(subnet):
 
 
 class DayStats:
-    def __init__(self):
+    def __init__(self, date):
         self.blocked = defaultdict(int)
         self.unlocked = defaultdict(int)
         self.no_org = 0
+        self.date = date
 
     def __str__(self):
-        return '<DayStats> blocked: {}, unlocked: {}, not counted: {}'.format(sum(self.blocked.values()), sum(self.unlocked.values()), self.no_org)
+        return '<DayStats {}> blocked: {}, unlocked: {}, not counted: {}'.format(self.date, sum(self.blocked.values()), sum(self.unlocked.values()), self.no_org)
 
 
 def get_commit_date(commit):
@@ -217,7 +218,7 @@ def update_geodata(session, added_ips, removed_ips, date, commit):
 
 
 def update_stats(session, added_ips, removed_ips, date, commit):
-    stats = DayStats()
+    stats = DayStats(date)
     logger_info.info('added_ips: {}, removed_ips: {}, date: {}, commit: {}'.format(len(added_ips), len(removed_ips), date, commit))
 
     for added in added_ips:
