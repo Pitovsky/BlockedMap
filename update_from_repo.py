@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 import difflib
-from ipaddress import ip_network
+from ipaddress import ip_address, ip_network
 import logging
 import os
 import pickle
@@ -13,7 +13,7 @@ from csv_parser import fill_data
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import update
 
-from init_db import BlockedIpData, Stats, engine, get_bin_prefix
+from init_db import BlockedIpData, Stats, engine, get_bin_prefix, get_bin_ip
 from ip_selector import full_geo_cache, select_ip
 from geodata_loader import load_some_geodata
 
@@ -165,19 +165,16 @@ def update_geodata(session, added_ips, removed_ips, date, commit):
         added['exclude_time'] = None
         try:
             if added['ip']:
-                obj = session.query(BlockedIpData).filter_by(
-                    ip=added['ip'],
-                    org=added['org'],
-                    decision_date=added['decision_date'],
-                )
+                ip_bin = get_bin_ip(ip_address(added['ip']))
             elif added['ip_subnet']:
-                obj = session.query(BlockedIpData).filter_by(
-                    ip_subnet=added['ip_subnet'],
-                    org=added['org'],
-                    decision_date=added['decision_date'],
-                )
+                ip_bin = get_bin_prefix(ip_network(added['ip_subnet']))
             else:
                 raise Exception("Bad ip added: " + str(added))
+            obj = session.query(BlockedIpData).filter_by(
+                ip_bin=ip_bin,
+                org=added['org'],
+                decision_date=added['decision_date'],
+            )
             if obj.first():
                 excluded = obj.filter(BlockedIpData.exclude_time is not None)
                 if excluded.first():
@@ -196,19 +193,16 @@ def update_geodata(session, added_ips, removed_ips, date, commit):
     for removed in removed_ips:
         try:
             if removed['ip']:
-                obj = session.query(BlockedIpData).filter_by(
-                    ip=removed['ip'],
-                    org=removed['org'],
-                    decision_date=removed['decision_date'],
-                )
+                ip_bin = get_bin_ip(ip_address(removed['ip']))
             elif removed['ip_subnet']:
-                obj = session.query(BlockedIpData).filter_by(
-                    ip_subnet=removed['ip_subnet'],
-                    org=removed['org'],
-                    decision_date=removed['decision_date'],
-                )
+                ip_bin = get_bin_prefix(ip_network(removed['ip_subnet']))
             else:
                 raise Exception("Bad ip removed: " + str(removed))
+            obj = session.query(BlockedIpData).filter_by(
+                ip_bin=ip_bin,
+                org=removed['org'],
+                decision_date=removed['decision_date'],
+            )
             if obj.first():
                 obj.update({'exclude_time': date})
             else:
