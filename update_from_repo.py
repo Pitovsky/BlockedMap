@@ -6,6 +6,7 @@ from ipaddress import ip_address, ip_network
 import logging
 import os
 import pickle
+import shutil
 
 import git
 from tqdm import tqdm
@@ -20,8 +21,10 @@ from geodata_loader import load_some_geodata
 Session = sessionmaker(bind=engine)
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
 LOGSDIR = BASEDIR + '/logs/'
-repo_path = os.path.join(BASEDIR, '../z-i/')
+repo_url = 'git@github.com:zapret-info/z-i.git'
+repo_path = os.path.join(BASEDIR, '../z-i')
 report_threshold = 5000
+history_threshold = 1000
 
 os.makedirs(LOGSDIR, exist_ok=True)
 
@@ -65,13 +68,42 @@ def get_commit_date(commit):
     # datetime.datetime.fromtimestamp(commit.authored_date).strftime('%Y-%m-%d')
     return commit.message.split(' ')[1]
 
+def check_reclone_repo(repo_path):
+    repo = git.Repo(repo_path)
+    history_size = len(list(repo.iter_commits('HEAD^@')))
+    logger_info.info('Current repo history is {} entries'.format(history_size))
+    repo.remotes.origin.fetch()
+    if history_size < history_threshold:
+        return repo
+    try:
+        commits_ahead = list(repo.iter_commits('HEAD..origin'))
+        head_was_at = repo.head.commit
+        tmp_path = repo_path + '_tmp'
+        shutil.rmtree(tmp_path)
+        depth = len(commits_ahead) + 100
+        logger_info.warning('Will reclone the repo to {} with depth {} ({} commits were ahead of HEAD={})'.format(tmp_path, depth, len(commits_ahead), head_was_at))
+        new_repo = git.Repo.clone_from(repo_url, tmp_path, depth=depth)
+        logger_info.info('Cloning finished')
+        new_repo.git.checkout(head_was_at, force=True)
+        logger_info.info('Checked out to {}'.format(head_was_at))
+        new_commits_ahead = list(new_repo.iter_commits('HEAD..origin'))
+        new_head_is = repo.git.rev_parse('HEAD')
+        logger_info.info('Checked out to {} with {} commits ahead -- {}'.format(
+            new_head_is, len(new_commits_ahead), 'ok' if len(commits_ahead) >= len(new_commits_ahead) and new_head_is == head_was_at else 'ERROR')
+        )
+    except Exception as e:
+        logger.error('Error while recloning the repo: {}'.format(e))
+        return repo
+    shutil.rmtree(repo_path)
+    shutil.move(tmp_path, repo_path)
+    return git.Repo(repo_path)
+
 
 def get_changes(repo_path, squash=False):
-    repo = git.Repo(repo_path)
-    # repo.remotes.origin.fetch()
+    repo = check_reclone_repo(repo_path)
     fetched = list(repo.iter_commits('HEAD..origin'))
     logger_info.warning('{0} commits are fetched!'.format(len(fetched)))
-    logger_info.info('Head is now at {0}.'.format(repo.heads.master.commit))
+    logger_info.info('Head is now at {0}.'.format(repo.git.rev_parse('HEAD')))
     fetched.reverse()
     squashed_commits = []
     last_processed_commit = parent = repo.head.commit
@@ -110,9 +142,8 @@ def get_changes(repo_path, squash=False):
                 removed.append(line)
         yield prev, commit, added, removed
         last_processed_commit = commit
-    repo.heads.master.set_commit(last_processed_commit)
-    repo.heads.master.checkout(force=True)
-    logger_info.info('Head is now at {0}, {1} commits behind origin.'.format(repo.heads.master.commit, len(list(repo.iter_commits('HEAD..origin')))))
+    repo.git.checkout(last_processed_commit, force=True)
+    logger_info.info('Head is now at {0}, {1} commits behind origin.'.format(repo.git.rev_parse('HEAD'), len(list(repo.iter_commits('HEAD..origin')))))
 
 
 def report(prev, commit, added_ip_clean, removed_ip_clean):
@@ -278,4 +309,4 @@ def make_cache():
 if __name__ == '__main__':
     session = Session()
     db_update(repo_path, session)
-    make_cache()
+    # make_cache()
