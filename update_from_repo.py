@@ -70,26 +70,31 @@ def get_commit_date(commit):
 
 def check_reclone_repo(repo_path):
     repo = git.Repo(repo_path)
-    history_size = len(list(repo.iter_commits('HEAD^@')))
-    logger_info.info('Current repo history is {} entries'.format(history_size))
+    try:
+        history_size = len(list(repo.iter_commits('HEAD^@')))
+    except Exception as e:
+        logger.error('Error while calculating history size, default to 0: {}'.format(e))
+        history_size = -1
+    logger_info.info('Current repo history is {} entries before HEAD'.format(history_size))
     repo.remotes.origin.fetch()
     if history_size < history_threshold:
         return repo
     try:
-        commits_ahead = list(repo.iter_commits('HEAD..origin'))
+        commits_ahead = len(list(repo.iter_commits('HEAD..origin')))
         head_was_at = repo.head.commit
         tmp_path = repo_path + '_tmp'
-        shutil.rmtree(tmp_path)
-        depth = len(commits_ahead) + 100
-        logger_info.warning('Will reclone the repo to {} with depth {} ({} commits were ahead of HEAD={})'.format(tmp_path, depth, len(commits_ahead), head_was_at))
+        if os.path.exists(tmp_path) and os.path.isdir(tmp_path):
+            shutil.rmtree(tmp_path)
+        depth = commits_ahead + 100
+        logger_info.warning('Will reclone the repo to {} with depth {} ({} commits were ahead of HEAD={})'.format(tmp_path, depth, commits_ahead, head_was_at))
         new_repo = git.Repo.clone_from(repo_url, tmp_path, depth=depth)
         logger_info.info('Cloning finished')
         new_repo.git.checkout(head_was_at, force=True)
         logger_info.info('Checked out to {}'.format(head_was_at))
-        new_commits_ahead = list(new_repo.iter_commits('HEAD..origin'))
-        new_head_is = repo.git.rev_parse('HEAD')
+        new_commits_ahead = len(list(new_repo.iter_commits('HEAD..origin')))
+        new_head_is = new_repo.head.commit
         logger_info.info('Checked out to {} with {} commits ahead -- {}'.format(
-            new_head_is, len(new_commits_ahead), 'ok' if len(commits_ahead) >= len(new_commits_ahead) and new_head_is == head_was_at else 'ERROR')
+            new_head_is, len(new_commits_ahead), 'ok' if commits_ahead >= new_commits_ahead and new_head_is == head_was_at else 'ERROR')
         )
     except Exception as e:
         logger.error('Error while recloning the repo: {}'.format(e))
@@ -103,7 +108,7 @@ def get_changes(repo_path, squash=False):
     repo = check_reclone_repo(repo_path)
     fetched = list(repo.iter_commits('HEAD..origin'))
     logger_info.warning('{0} commits are fetched!'.format(len(fetched)))
-    logger_info.info('Head is now at {0}.'.format(repo.git.rev_parse('HEAD')))
+    logger_info.info('Head is now at {0}.'.format(repo.head.commit))
     fetched.reverse()
     squashed_commits = []
     last_processed_commit = parent = repo.head.commit
@@ -143,7 +148,7 @@ def get_changes(repo_path, squash=False):
         yield prev, commit, added, removed
         last_processed_commit = commit
     repo.git.checkout(last_processed_commit, force=True)
-    logger_info.info('Head is now at {0}, {1} commits behind origin.'.format(repo.git.rev_parse('HEAD'), len(list(repo.iter_commits('HEAD..origin')))))
+    logger_info.info('Head is now at {0}, {1} commits behind origin.'.format(repo.head.commit, len(list(repo.iter_commits('HEAD..origin')))))
 
 
 def report(prev, commit, added_ip_clean, removed_ip_clean):
